@@ -77,20 +77,14 @@ def running_mean(x, N):
     cumsum  = np.cumsum(np.insert(x,0,0))
     return (cumsum[N:] - cumsum[:-N]) / N
 
-def compute_avg_t(data, avg):
-    """compute running mean 
-        (only I didn't know what it is at the time...)"""
+def stepwise_mean(x, N, jump):
+    """for jumping values like Denny did"""
+    data    = running_mean(x, N)
+    out     = []
+    for i in range(0, len(data), jump):
+        out.append(data[i])
+    return out
 
-    points = []
-    for i in range(0,(len(data)-avg)):
-        if i < len(data):
-            average = mean(data[i: (i + avg)])
-            points = np.append(points, average)
-        else:
-            average = mean(data[i: (len(data) - 1)])
-            points = np.append(points, average)
-    return points
-    
 def define_bins(data, num_bins):
     """defines bins for estimation of PDF"""#
         
@@ -130,52 +124,19 @@ def define_bins(data, num_bins):
                 bins[i, j] = bins[(i - 1), j] + dat_step
         return bins  
 
-def get_num_bins(len_dat, points, avg):
-    zeros = 0
-    for point in points:
-        if point == 0.:
-            zeros += 1
-    num_bins = np.ceil((len_dat - zeros) / avg)
-    return int(num_bins)
-
-def compute_pdf(data, avg, num_bins=30):
+def compute_pdf(data, avg, num_bins=30, avg_step=0):
     """creates probability distribution using numpy.historgram"""
     bins = define_bins(data, num_bins)
-    points      = running_mean(data,avg)
+    if avg_step==0:
+        points      = running_mean(data,avg)
+    elif avg_step > 0:
+        points  = stepwise_mean(data, avg, avg_step)
+    else:
+        print 'invalid avg_step {}'.format(avg_step)
+        return None
     test        = np.histogram(points, bins[:, 1], density = True)[0]
     out         = np.array([np.array(bins[1:,0]),np.array( test)])
     return out
-
-def compute_pdf_selfmade(data, avg, num_bins = 30):
-    """creates probability distribution"""
-
-    # compute the t averages
-    points      = compute_avg_t(data, avg)
-    # create the bins for counting the PDF
-    # num_bins    = get_num_bins(len(data), points, avg)
-    bins        = define_bins  (data, num_bins)
-    # loop over t_averaged points
-    # part them at zero. throw points at zero away
-    zeros = 0
-    for point in points:
-        if point < 0. :
-            for bin in bins:
-                if bin[1] <= point < bin[2]:
-                    bin[3] += 1
-                else:
-                    pass
-        elif point > 0. :
-            for bin in bins:
-                if bin[1] < point <= bin[2]:
-                    bin[3] += 1
-                else:
-                    pass
-        elif point == 0. :
-            zeros += 1
-
-    # normalize the distribution, neglect number of neglected poits
-    bins[:,3] /= (len(points)- zeros) 
-    return bins
 
 def quot_pos_neg(bins): 
     quot = np.array((0,0)) 
@@ -202,11 +163,14 @@ def ft_analysis(pdf, dtime, avg):
     # 1/t
     avgt    = 1/ (dtime * avg)
     quot    = quot_pos_neg(pdf)
-    ft      = quot
+    ft      = []
     # turn ratio into ft-like logarithmic distribution.
-    if ft.ndim > 1:
-        for i in range(len(ft[1])):
-            ft[1,i] = avgt * np.log(ft[1,i])
+    if quot.ndim > 1:
+        for i in range(len(quot[1])):
+            if quot[1,i] != 0:
+                ft.append(np.array([quot[0,i],avgt * np.log(quot[1,i])]))
+            else:
+                continue
 
     return np.array(ft)
 

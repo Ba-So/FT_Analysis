@@ -1,6 +1,7 @@
 import Nio
 import Ngl
 import numpy as np
+from scipy import stats as st
 
 def print_xy_ngl(data, name, odir):
     """Prints xy Plots of input data"""
@@ -8,11 +9,7 @@ def print_xy_ngl(data, name, odir):
     # - prepare data
     fname   = name
     x       = data[0]  
-    print 'x'
-    print x
     y       = data[1]
-    print 'y'
-    print y
 
 
     # - resources for workstation:
@@ -51,6 +48,55 @@ def print_xy_ngl(data, name, odir):
 
     print 'printed {}'.format(fname)
     return
+
+def print_xy_linreg(data, name, odir):
+    """Prints xy Plots of input data"""
+    # - prepare data
+    fname   = name
+    x       = data[0]  
+    y       = data[1]
+    # - compute linear regression ax+b=0
+    a, b    = st.linregress(x,y)[:2]
+    # - compute regression curve
+    ylin    = a*x+b
+    y       = np.array([y, ylin])
+
+    # - resources for workstation:
+    wkres           = Ngl.Resources()
+    wkres.wkWidth   = 500
+    wkres.wkHeight  = 500
+    wks_type        = 'png'
+
+    # - open workstation
+    wks             = Ngl.open_wks(wks_type, (odir + fname), wkres)
+    
+    # - resources for x-y plot
+    res                 = Ngl.Resources()
+    # - strings for picture
+    res.tiMainString    = fname
+    res.tiYAxisString   = (fname + ' in Eiern')
+    res.tiXAxisString   = 'Number of Timesteps'
+    res.tiMainFont      = 'Helvetica'
+    res.tiXAxisFont     = 'Helvetica'
+    res.tiYAxisFont     = 'Helvetica'
+    # - characteristics of plot
+    # - first values in lists below refer to first curve scnd fo scnd curve
+    res.xyLineColors    = [189, 107]
+    # - print true values as markers, linreg as solid line
+    res.xyMarkLineModes = ["Markers", "Lines"]
+    res.xyMarkers       = [3, 0] # - asterisk and none
+    res.xyLineThicknessF    = 0.5
+
+
+    plot = Ngl.xy(wks, x, y, res) 
+    
+    # - Clean up
+    del plot
+    del res
+
+    print 'printed {}'.format(fname)
+    return
+
 
 def print_xy_ngl_dict(val_dic, name_list, odir, keys):
     """Prints xy Plots of input data"""

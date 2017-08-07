@@ -166,27 +166,6 @@ def test_read_matlab():
     for key in data.iterkeys():
         print key
         
-def test_ft_plot():
-    file_name   = 'den_data.mat'
-    file_path   = '/home/kd031/iconana/source/'
-    out_path    = '/home/kd031/iconana/output/'
-    data        = io.read_matlab(file_path + file_name)    
-    num_bins    = 10000
-    avg         = 300
-    print len(data['t'])
-    # - compute timestep width
-    dtime       = data['t'][1]-data['t'][0]
-    print dtime
-    # - compute pdf
-    pdf_out     = dm.compute_pdf(data['P'], avg, num_bins)
-    # - compute ft from pdf
-    ft_out      = dm.ft_analysis(pdf_out, dtime, avg)
-    # - print
-    name        = 'den_dat_test_{}'.format(avg)
-    plt.print_xy_ngl(pdf_out, name + '_pdf', out_path)
-    plt.print_xy_ngl(ft_out, name + '_ft', out_path)
- 
-    
 
 if __name__== '__main__':
    #test_names_cleanup()
@@ -201,5 +180,4 @@ if __name__== '__main__':
    #test_quot_pos_neg()
    #test_ft_analysis()
    #test_read_matlab()
-   test_ft_plot()
 
