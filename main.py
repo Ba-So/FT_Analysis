@@ -117,7 +117,7 @@ def denny_test(data, out_path, num_bins, avg, avg_step=0):
     # - print
     param       = [num_bins, avg, avg_step]
     return ft_out
-    
+
 
 if __name__== '__main__':
    # idir  = '/home/kastor+pollux/kd031/icon-hex/experiments/'
@@ -136,12 +136,16 @@ if __name__== '__main__':
     avg         = [150, 225, 300, 450, 600]
     avg_step    = 0
     data_lst    = []
-    for i in avg:
-        data_lst.append( denny_test(data, out_path, num_bins, i, avg_step))
+    decorr      = dm.decorrelation_time(data['P'], data['t'][1]-data['t'][0])
+    print "The decorrelation time is:"
+    print decorr
+    print "computing: ft's"
+ #   for i in avg:
+  #      data_lst.append( denny_test(data, out_path, num_bins, i, avg_step))
 
-    name            = 'den_dat_step_sin_avg'
+   # name            = 'den_dat_step_sin_avg'
 
-    print 'output: printing ft and linear regression'
-    plt.plot_xy(data_lst)
+  #  print 'output: printing ft and linear regression'
+  #  plt.plot_xy(data_lst)
     
 

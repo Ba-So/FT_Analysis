@@ -2,6 +2,7 @@ from __future__ import division
 import numpy as np
 import custom_io as io
 from scipy import stats as st
+import matplotlib.pyplot as plt
 
 def mean(values):
     """computes the mean of an array of values"""
@@ -177,6 +178,64 @@ def ft_analysis(pdf, dtime, avg):
                 continue
     ft      = np.array(ft)
     return np.array(ft)
+
+def autocorrelation(data):
+    """computes the autocorrelation as a function of k, of a data set.
+       input: data, as an 1Darray 
+       output: correlation values, position in array = k   
+       """
+    print "autocorr here"
+    max         = 10000
+    x           = np.reshape(data, len(data))[:max]
+    n           = len(x)
+    variance    = x.var()
+    x           = x - x.mean()
+    print "going into np.correlate"
+    r           = np.correlate(x[:n], x[:n], mode = 'full')[-n:] 
+    #assert np.allclose(r, np.array([x[:n-k]*x[-(n-k):]).sum() for k in range(n)]))
+    result      = r/(variance*(np.arange(n, 0, -1)))
+    return result
+
+def autocorrelation_taubenheim(data):
+    max         = 10000
+    x           = np.reshape(data, len(data))[:max]
+    n           = len(x)
+    print n
+    mean        = x.mean()
+    mean_sq     = mean**2
+    print mean_sq
+    c_zero      = (x*x).mean()-mean_sq
+    c           = []
+    c           = np.append(c, c_zero)
+    for tau in range(1, n-1):
+        nr      = n-tau-1
+        xxsum   = np.convolve(x[:(n-tau)]*x[tau:])/nr
+        mean_sq = x[:(n-tau)].mean()*x[tau:].mean()
+        c       = np.append(c, xxsum-mean_sq)
+       # c       = np.append(c, (x[:(n-tau)]*x[tau:]).mean()-mean_sq)
+    return c/c[0]
+
+def decorrelation_time(data, dtime):
+    """computes decorrelation time of dataseries"""
+    print "decorr here"
+    corr        = autocorrelation(data)
+    corr_tau    = autocorrelation_taubenheim(data)
+    # - find first index at which correlation = 0
+    bound       = 10**(-3)
+    print corr
+    print corr_tau
+    plt.plot(corr)
+    plt.plot(corr_tau)
+    plt.show()
+    k           = np.argwhere(corr<bound)       
+    return k[0]*dtime
+
+def lin_reg(data):
+    x       = data[0]
+    y       = data[1]
+    a,b     = st.linregress(x,y)[:2]
+    print a,b
+    return a*x+b
 
 def findminmax_dict(dict, name, pos = 0):
     min = None
