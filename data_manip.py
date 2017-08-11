@@ -1,6 +1,7 @@
 from __future__ import division
 import numpy as np
 import custom_io as io
+from scipy import stats as st
 
 def mean(values):
     """computes the mean of an array of values"""
@@ -75,7 +76,8 @@ def make_relative(data, keys):
 def running_mean(x, N):
     """efficent running mean computation"""
     cumsum  = np.cumsum(np.insert(x,0,0))
-    return (cumsum[N:] - cumsum[:-N]) / N
+    help    = (cumsum[N:] - cumsum[:-N]) / N
+    return help[:-N or none]
 
 def stepwise_mean(x, N, jump):
     """for jumping values like Denny did"""
@@ -128,9 +130,9 @@ def compute_pdf(data, avg, num_bins=30, avg_step=0):
     """creates probability distribution using numpy.historgram"""
     bins = define_bins(data, num_bins)
     if avg_step==0:
-        points      = running_mean(data,avg)
+        points      = running_mean(data, avg)
     elif avg_step > 0:
-        points  = stepwise_mean(data, avg, avg_step)
+        points      = stepwise_mean(data, avg, avg_step)
     else:
         print 'invalid avg_step {}'.format(avg_step)
         return None
@@ -142,11 +144,12 @@ def quot_pos_neg(bins):
     quot = np.array((0,0)) 
     bin     = []
     val     = []
+    cutoff  = 10**(-2)
     for i in range(len(bins[0,:])):
         # compare bin centers
         if bins[0,i] < 0:
             for j in reversed(range(len(bins[0,:]-i))):
-                if bins[0,j] == -bins[0,i]:
+                if ((bins[0,j] == -bins[0,i]) & (-bins[0,i] <= cutoff)) :
                     # - construct new array with bin center, and ratio
                     if bins[1,i] != 0:
                         bin.append(-bins[0,i])
@@ -163,15 +166,16 @@ def ft_analysis(pdf, dtime, avg):
     # 1/t
     avgt    = 1/ (dtime * avg)
     quot    = quot_pos_neg(pdf)
-    ft      = []
+    ft      = [[],[]]
     # turn ratio into ft-like logarithmic distribution.
     if quot.ndim > 1:
         for i in range(len(quot[1])):
             if quot[1,i] != 0:
-                ft.append(np.array([quot[0,i],avgt * np.log(quot[1,i])]))
+                ft[1].append(avgt * np.log(quot[1, i]))
+                ft[0].append(quot[0,i])
             else:
                 continue
-
+    ft      = np.array(ft)
     return np.array(ft)
 
 def interpolate(dict, name, npts = 30):
@@ -199,11 +203,13 @@ def interpolate(dict, name, npts = 30):
     for i in range(len(names)):
         out[names[i]] = yvals[i]
     return out
-    
 
-            
-
-
+def lin_reg(data):
+    x       = data[0]
+    y       = data[1]
+    a,b     = st.linregress(x,y)[:2]
+    print a,b
+    return a*x+b
 
 def findminmax_dict(dict, name, pos = 0):
     min = None

@@ -1,5 +1,4 @@
 import custom_io as io
-import plot_ngl as plt
 import data_manip as dm
 import Nio
 import Ngl
@@ -178,6 +177,6 @@ if __name__== '__main__':
    #test_running_mean()
    #test_compute_pdf()
    #test_quot_pos_neg()
-   #test_ft_analysis()
+   test_ft_analysis()
    #test_read_matlab()
 
