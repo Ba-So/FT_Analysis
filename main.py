@@ -2,11 +2,9 @@ import os
 import sys
 import numpy as np
 import time
-import Nio
-import Ngl
 import custom_io as io
-import plot_ngl as plt
 import data_manip as dm
+import plot as plt
 
 
 def count_time(t1=0):
@@ -49,7 +47,7 @@ def run_this(dir, project_name, file_name, odir):
     #'pote_mean', 'tote_mean']
     keys = ['etot', 'etot_mean']
     #keys = ['pote', 'pote_mean']
-    plt.print_xy_ngl_dict(en_mean, name_list, odir, fname, keys)    
+#    plt.print_xy_ngl_dict(en_mean, name_list, odir, fname, keys)    
 
     Ngl.end() 
     #fancy time counting
@@ -90,46 +88,35 @@ def run_this2(dir, pname, fname, odir):
                 give_ft.append(name)
 
         pdf_dic     = dm.interpolate(ft_out, key+'_pdf')
-        plt.print_xy_ngl_ft(pdf_dic, name_list, odir)
+#        plt.print_xy_ngl_ft(pdf_dic, name_list, odir)
 
         ft_dic     = dm.interpolate(ft_out, key+'_ft')
-        plt.print_xy_ngl_ft(ft_dic, name_list, odir) 
+#        plt.print_xy_ngl_ft(ft_dic, name_list, odir) 
 
     del data    
 
     Ngl.end()
     count_time(t1)
 
-def denny_test():
-    file_name   = 'den_data.mat'
-    file_path   = '/home/kd031/iconana/source/'
-    out_path    = '/home/kd031/iconana/output/'
-    print 'loading data set'
-    data        = io.read_matlab(file_path + file_name)    
-    num_bins    = 10000
-    avg         = 300
+def denny_test(data, out_path, num_bins, avg, avg_step=0):
     print 'number of bins {}, steps averaged over: {}'.format(num_bins, avg)
     # - compute timestep width
     dtime       = data['t'][1]-data['t'][0]
     print 'tau = {}'.format(dtime*avg)
     # - compute pdf
-    avg_step    = 2*avg  
     print 'averaging step width_ {}'.format(avg_step)
     print 'computing histogram (pdf)'
     pdf_out     = dm.compute_pdf(data['P'], avg, num_bins, avg_step)
 
-    # - compute ft from pdf
+    # - compute ft from pdf:H
     print 'analysing relation of fluctuations (ft)'
     ft_out      = dm.ft_analysis(pdf_out, dtime, avg)
+    lin_reg     = dm.lin_reg(ft_out)
+    ft_out      = np.concatenate((ft_out, [lin_reg]))
+
     # - print
-    name        = 'den_dat_step_{}_{}'.format(avg, num_bins)
-
-    print 'output: printing pdf'
-    plt.print_xy_ngl(pdf_out, name + '_pdf', out_path)
-
-    print 'output: printing ft and linear regression'
-    plt.print_xy_linreg(ft_out, name + '_ft', out_path)
-
+    param       = [num_bins, avg, avg_step]
+    return ft_out
     
 
 if __name__== '__main__':
@@ -140,6 +127,21 @@ if __name__== '__main__':
    # run_this2(idir, pname, fname, odir)
    # fname    = 'den_data.mat'
    # fpath    = '/home/kd031/iconana/source/'
-   denny_test()
+    file_name   = 'den_data.mat'
+    file_path   = '/home/kd031/iconana/source/'
+    print 'loading data set'
+    data        = io.read_matlab(file_path+file_name)    
+    out_path    = '/home/kd031/iconana/output/'
+    num_bins    = 1000
+    avg         = [150, 225, 300, 450, 600]
+    avg_step    = 0
+    data_lst    = []
+    for i in avg:
+        data_lst.append( denny_test(data, out_path, num_bins, i, avg_step))
 
+    name            = 'den_dat_step_sin_avg'
+
+    print 'output: printing ft and linear regression'
+    plt.plot_xy(data_lst)
+    
 

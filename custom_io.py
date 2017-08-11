@@ -62,9 +62,6 @@ def resort_array(data):
             out[i].append(data[j][i])
     
     return out
-    
-
-
 
 def read_file(file_name):
     """reads contents of a file line by line
@@ -96,6 +93,7 @@ def read_matlab(file):
         needed new routine different stuff
     """
     data    = scio.loadmat(file)
+    
     return data
 
 def find_var(lines):
