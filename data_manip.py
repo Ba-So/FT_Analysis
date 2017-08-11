@@ -178,39 +178,6 @@ def ft_analysis(pdf, dtime, avg):
     ft      = np.array(ft)
     return np.array(ft)
 
-def interpolate(dict, name, npts = 30):
-    """Routine to interpolate values of ft's and pdf's onto one common x"""
-    xmin, xmax = findminmax_dict(dict, name, 0)
-    xstep = (xmax - xmin) / npts
-    xvals = [xmin +(i*xstep) for i in range(0, ( npts+1))]
-    yvals = []
-    names = []
-    out   = {}
-    interp= 0
-    jarr  = 0
-    if -1 != name.find('pdf'):
-        jarr = 3
-    else:
-        jarr = 1
-
-    for key, values in dict.iteritems():
-        if -1 != key.find(name):
-            names.append(key)
-            interp = np.interp(xvals, values[:, 0], values[:, jarr])
-            yvals.append(interp)
-
-    out['xval'] = xvals
-    for i in range(len(names)):
-        out[names[i]] = yvals[i]
-    return out
-
-def lin_reg(data):
-    x       = data[0]
-    y       = data[1]
-    a,b     = st.linregress(x,y)[:2]
-    print a,b
-    return a*x+b
-
 def findminmax_dict(dict, name, pos = 0):
     min = None
     max = None
