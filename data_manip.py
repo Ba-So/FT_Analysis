@@ -185,7 +185,7 @@ def autocorrelation(data):
        output: correlation values, position in array = k   
        """
     print "autocorr here"
-    max         = 10000
+    max         = 1000
     x           = np.reshape(data, len(data))[:max]
     n           = len(x)
     variance    = x.var()
@@ -198,36 +198,38 @@ def autocorrelation(data):
 
 def autocorrelation_taubenheim(data):
     max         = 10000
-    x           = np.reshape(data, len(data))[:max]
+    x           = np.reshape(data, len(data))  [:max]
     n           = len(x)
+    m           = n//20
     print n
     mean        = x.mean()
     mean_sq     = mean**2
     print mean_sq
-    c_zero      = (x*x).mean()-mean_sq
+    c_zero      = ((x*x).mean()-mean_sq)/n
     c           = []
     c           = np.append(c, c_zero)
-    for tau in range(1, n-1):
+    for tau in range(1, m-1):
         nr      = n-tau-1
-        xxsum   = np.convolve(x[:(n-tau)]*x[tau:])/nr
+        #xxsum   = np.convolve(x[:(n-tau)],x[tau:])/nr
+        xxsum   = np.mean(x[:(n-tau)]*x[tau:])
         mean_sq = x[:(n-tau)].mean()*x[tau:].mean()
-        c       = np.append(c, xxsum-mean_sq)
+        c       = np.append(c, (xxsum-mean_sq)/nr)
        # c       = np.append(c, (x[:(n-tau)]*x[tau:]).mean()-mean_sq)
     return c/c[0]
 
 def decorrelation_time(data, dtime):
     """computes decorrelation time of dataseries"""
     print "decorr here"
-    corr        = autocorrelation(data)
+    # corr        = autocorrelation(data)
     corr_tau    = autocorrelation_taubenheim(data)
     # - find first index at which correlation = 0
     bound       = 10**(-3)
-    print corr
+    # print corr
     print corr_tau
-    plt.plot(corr)
+    # plt.plot(corr)
     plt.plot(corr_tau)
     plt.show()
-    k           = np.argwhere(corr<bound)       
+    k           = np.argwhere(corr_tau<bound)       
     return k[0]*dtime
 
 def lin_reg(data):
