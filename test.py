@@ -1,7 +1,5 @@
 import custom_io as io
 import data_manip as dm
-import Nio
-import Ngl
 from random import randint
 import numpy as np
 
@@ -164,7 +162,26 @@ def test_read_matlab():
     print type(data)
     for key in data.iterkeys():
         print key
-        
+
+def test_concat_dicts():
+    dicta       = {'a': [1,2,3], 'b': [10,11,12], 'c':[3,6,9]}
+    dictb       = {'a': [4,5,6], 'b': [13,14,15]}
+    dict_exp    = {'a': [1,2,3,4,5,6], 'b': [10,11,12,13,14,15], 'c':[3,6,9]}
+    dict_test   = {}
+
+    dict_test   = io.concat_dicts(dicta, dictb)
+    test_is     = False
+    print dict_test
+    for key in dict_exp.iterkeys():
+        if (dict_exp[key] == dict_test[key]).all():
+            test_is = True
+        else:
+            print 'stuff to do'
+            break
+    if test_is:
+        print dict_test
+        print 'pass'
+
 
 if __name__== '__main__':
    #test_names_cleanup()
@@ -177,6 +194,7 @@ if __name__== '__main__':
    #test_running_mean()
    #test_compute_pdf()
    #test_quot_pos_neg()
-   test_ft_analysis()
+   #test_ft_analysis()
    #test_read_matlab()
+   test_concat_dicts()
 

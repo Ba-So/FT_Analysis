@@ -118,34 +118,69 @@ def denny_test(data, out_path, num_bins, avg, avg_step=0):
     param       = [num_bins, avg, avg_step]
     return ft_out
 
+def analyse_data(data, dtime, num_bins, avg, avg_step=2):
+
+    pdf_out     = dm.compute_pdf(data, avg, num_bins, avg_step)    
+    ft_out      = dm.ft_analysis(pdf_out, dtime, avg)
+    if ft_out != None:
+        lin_reg     = dm.lin_reg(ft_out)
+        ft_out      = np.concatenate((ft_out, [lin_reg]))
+        return ft_out, pdf_out
+    else:
+        return None, pdf_out
+
+def ft_analyse(data, avg, num_bins, out_path, max=2):
+    th          = np.array([avg * i for i in range(1,max)])
+    for ths in th:
+        helper, helper2  = analyse_data(data, 120, num_bins, ths)
+        if helper != None:
+            data_lst.append(helper)
+            data_lst2.append(helper2)
+        else:
+            data_lst2.append(helper2)
+
+    plt.plot_x(data, out_path)
+    plt.plot_xy(data_lst, out_path + '_ft')    
+    plt.plot_xy(data_lst2, out_path+'_pdf')    
+
+def relate_e(data, out_path):
+    # to get a hold of the relations of energies to one another
+    pass
+
 
 if __name__== '__main__':
-   # idir  = '/home/kastor+pollux/kd031/icon-hex/experiments/'
-   # pname = 'FT_LONG_HS_JW_90/'
-   # fname = 'total_ddtkin_0001.dat'
+    idir        = '/home/kastor+pollux/kd031/icon-hex/experiments/'
+    pname       = 'HS_FT_2000_days/'
+    file_name   = 'total_ddtkin_0001.dat'
+    file_name2  = 'total_ddtkin_0035.dat'
    # odir        = '/home/kd031/iconana/output/'
    # run_this2(idir, pname, fname, odir)
    # fname    = 'den_data.mat'
    # fpath    = '/home/kd031/iconana/source/'
-    file_name   = 'den_data.mat'
-    file_path   = '/home/kd031/iconana/source/'
+   # file_name   = 'den_data.mat'
+   # file_path   = '/home/kd031/iconana/source/'
     print 'loading data set'
-    data        = io.read_matlab(file_path+file_name)    
+    file_path   = idir + pname
+    data        = io.read_files([file_path + file_name, file_path + file_name2])    
+    for key in data.iterkeys():
+        print key
+
     out_path    = '/home/kd031/iconana/output/'
-    num_bins    = 1000
+    num_bins    = 100
     avg         = [150, 225, 300, 450, 600]
     avg_step    = 0
     data_lst    = []
-    decorr      = dm.decorrelation_time(data['P'], data['t'][1]-data['t'][0])
-    print "The decorrelation time is:"
-    print decorr
-    print "computing: ft's"
- #   for i in avg:
-  #      data_lst.append( denny_test(data, out_path, num_bins, i, avg_step))
+    data_lst2   = []
+    ds          = 720
+    disc        = 230*720
+    plt.plot_x([data['epothsf']], idir+pname + 'compare')
+   # avg         = dm.decorrelation_time(data['epothsf'][disc::], 120)
+   # if avg != None:
+   #     print "The decorrelation time is: {} hours".format(avg*120/(3600))
+   # plt.plot_xy_alt(data['epothsf'], idir + pname + 'epothsf')
 
-   # name            = 'den_dat_step_sin_avg'
-
-  #  print 'output: printing ft and linear regression'
-  #  plt.plot_xy(data_lst)
-    
-
+   # ft_analyse(data['epothsf'][disc::], avg, num_bins, idir+pname +'epothsf', 4)
+   # disc        = 300*720
+   # ft_analyse(data['epothsf'][disc::], avg, num_bins, idir+pname +'epothsf', 4)
+   # disc        = 400*720
+   # ft_analyse(data['epothsf'][disc::], avg, num_bins, idir+pname +'epothsf', 4)

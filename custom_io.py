@@ -86,6 +86,32 @@ def read_file(file_name):
         data_dict[names[i]] = data[i][:]
 
     return data_dict 
+def concat_dicts(dicta, dictb):
+    dict_out = {}
+    for key in dicta.iterkeys():
+        if key in dictb:
+            dict_out[key]   = np.ma.concatenate((dicta[key],dictb[key]), 0)
+        else:
+            dict_out[key]   = np.ma.concatenate((dicta[key], []),0)
+    return dict_out
+
+def read_files(file_names):
+    """reads contents of a file line by line
+    
+        first line is assumed to contain variable names
+        lines below are values in columns
+    """
+    data        = []
+    data_out    = {}
+
+    for file_name in file_names:
+        data.append(read_file(file_name))
+
+    data_out    = concat_dicts(data[0], data[1]) 
+    for i in range(2, len(data)):
+        data_out    = concat_dicts(data_out, data[i])
+
+    return data_out 
 
 def read_matlab(file):
     """reads content of a matlab data file

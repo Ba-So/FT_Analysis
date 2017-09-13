@@ -89,8 +89,11 @@ def stepwise_mean(x, N, jump):
     return out
 
 def define_bins(data, num_bins):
-    """defines bins for estimation of PDF"""#
-        
+    """defines bins for estimation of PDF"""
+    if len(data) <= (num_bins/2):
+        num_bins=len(data)/4
+    print "num_bins 1 {}".format(num_bins)
+
     bins      = np.zeros(((num_bins+1), 3))
     if not (isinstance(data, np.ndarray) or isinstance(data, list)):
         print 'input data is not an np.array or list'
@@ -99,37 +102,52 @@ def define_bins(data, num_bins):
         # define bins such, that they are symmetric around zero
         dat_max   = np.amax(data)
         dat_min   = np.amin(data)
-        dat_step  = (dat_max-dat_min) / num_bins   
+        dat_step  = abs((dat_max-dat_min) / num_bins)   
         if dat_min < 0:
-            num_l     = -int((dat_min+dat_step) // dat_step)
-            if (dat_min+dat_step)%dat_step <0:
-                num_l += 1 
-            # lower bound of bin
-            bins[(num_l), 1] = -dat_step 
-            # upper bound of bin
-            bins[(num_l+1), 1] = 0
-            # center of bin, for plotting
-            bins[(num_l+1), 0] = -dat_step/2 
+            if dat_max >= 0:
+                num_l     = int(abs(dat_min+dat_step) // dat_step)
+                if (dat_min+dat_step)%dat_step <0:
+                    num_l += 1 
+                #in need of further correction
+                # lower bound of bin
+                bins[(num_l), 1] = -dat_step 
+                # upper bound of bin
+                bins[(num_l+1), 1] = 0
+                # center of bin, for plotting
+                bins[(num_l+1), 0] = -dat_step/2 
+            elif dat_max <=0:
+                num_l     = int(abs(dat_max-dat_min-dat_step) //dat_step) 
+                # lower bound of bin
+                bins[(num_l), 1] = dat_max-dat_step 
+                # upper bound of bin
+                bins[(num_l+1), 1] = dat_max
+                # center of bin, for plotting
+                bins[(num_l+1), 0] = dat_max-dat_step/2 
+
             for i in range((num_l), -1, -1):
                 for j in range(2):
                     bins[i, j] = bins[i + 1, j] - dat_step
         else: 
             print "data not a candidate for FT"
-            num_l     = 1 
+            num_l     =  1
             # lower bound of bin
-            bins[0, 1] = 0
+            bins[0, 1] = dat_min 
             # upper bound of bin
-            bins[0, 2] = dat_step 
+            bins[0, 2] = dat_min + dat_step 
             # center of bin, for plotting
-            bins[0, 0] = dat_step/2 
+            bins[0, 0] = dat_min + dat_step/2 
+
         for i in range (num_l, (num_bins+1)):
             for j in range(2):
                 bins[i, j] = bins[(i - 1), j] + dat_step
+        print bins
         return bins  
 
 def compute_pdf(data, avg, num_bins=30, avg_step=0):
     """creates probability distribution using numpy.historgram"""
     bins = define_bins(data, num_bins)
+    if avg == None:
+        avg=1
     if avg_step==0:
         points      = running_mean(data, avg)
     elif avg_step > 0:
@@ -169,13 +187,16 @@ def ft_analysis(pdf, dtime, avg):
     quot    = quot_pos_neg(pdf)
     ft      = [[],[]]
     # turn ratio into ft-like logarithmic distribution.
-    if quot.ndim > 1:
+    if quot.shape[1] > 1:
         for i in range(len(quot[1])):
             if quot[1,i] != 0:
                 ft[1].append(avgt * np.log(quot[1, i]))
                 ft[0].append(quot[0,i])
             else:
                 continue
+    else:
+        print "There is not enough data to conduct a ft analysis"
+        return None
     ft      = np.array(ft)
     return np.array(ft)
 
@@ -197,14 +218,13 @@ def autocorrelation(data):
     return result
 
 def autocorrelation_taubenheim(data):
-    max         = 10000
+    print len(data)
+    max         = 200000
     x           = np.reshape(data, len(data))  [:max]
     n           = len(x)
     m           = n//20
-    print n
     mean        = x.mean()
     mean_sq     = mean**2
-    print mean_sq
     c_zero      = ((x*x).mean()-mean_sq)/n
     c           = []
     c           = np.append(c, c_zero)
@@ -220,17 +240,21 @@ def autocorrelation_taubenheim(data):
 def decorrelation_time(data, dtime):
     """computes decorrelation time of dataseries"""
     print "decorr here"
-    # corr        = autocorrelation(data)
     corr_tau    = autocorrelation_taubenheim(data)
     # - find first index at which correlation = 0
     bound       = 10**(-3)
-    # print corr
-    print corr_tau
-    # plt.plot(corr)
-    plt.plot(corr_tau)
-    plt.show()
     k           = np.argwhere(corr_tau<bound)       
-    return k[0]*dtime
+
+    if len(k)<1:
+        print 'data set did not reach decorrelation time.'
+        #plt.plot(corr_tau)
+        #plt.show()
+        return None
+    else:
+        print 'The decorrelation time is {}'.format(k[0]*dtime/3600)
+        #plt.plot(corr_tau)
+        #plt.show()
+        return k[0]
 
 def lin_reg(data):
     x       = data[0]
