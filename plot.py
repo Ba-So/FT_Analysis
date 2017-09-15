@@ -26,7 +26,26 @@ def plot_x(data,name):
     for i in range(len(data)):
         color   = next(ax._get_lines.prop_cycler)['color']
         plt.plot(data[i], ls='', mec='none', ms=2, marker=marker.next(),
-                color=color)
+                color=color, linewidth=1.0)
     plt.savefig(name)
     plt.show()
 
+
+def plot_x_avg(data,name):
+    # supposed to plot a flexible amlount of data.
+    # use list comprehension
+    # pltting info in array of arrays:
+    marker      = iter.cycle(('o','v','^','<','>','s','8','p'))
+    ax          = plt.gca()
+    
+    for i in range(len(data)):
+        color   = next(ax._get_lines.prop_cycler)['color']
+        plt.plot(data[i], ls='', mec='none', ms=2, marker=marker.next(),
+                color=color, linewidth=1.0)
+        data_avg=np.mean(data[i])
+        avg_arr =[data_avg for k in range(len(data[i]))]
+        color   = next(ax._get_lines.prop_cycler)['color']
+        plt.plot(avg_arr, ls='--', mec='none', ms=2, color=color,
+                linewidth=1.0)
+    plt.savefig(name)
+    plt.show()

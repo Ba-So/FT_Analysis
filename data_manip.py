@@ -112,20 +112,19 @@ def define_bins(data, num_bins):
                 # lower bound of bin
                 bins[(num_l), 1] = -dat_step 
                 # upper bound of bin
-                bins[(num_l+1), 1] = 0
+                bins[(num_l), 2] = 0
                 # center of bin, for plotting
-                bins[(num_l+1), 0] = -dat_step/2 
+                bins[(num_l), 0] = -dat_step/2 
             elif dat_max <=0:
                 num_l     = int(abs(dat_max-dat_min-dat_step) //dat_step) 
                 # lower bound of bin
                 bins[(num_l), 1] = dat_max-dat_step 
                 # upper bound of bin
-                bins[(num_l+1), 1] = dat_max
+                bins[(num_l), 2] = dat_max
                 # center of bin, for plotting
-                bins[(num_l+1), 0] = dat_max-dat_step/2 
-
-            for i in range((num_l), -1, -1):
-                for j in range(2):
+                bins[(num_l), 0] = dat_max-dat_step/2 
+            for i in range((num_l-1), -1, -1):
+                for j in range(3):
                     bins[i, j] = bins[i + 1, j] - dat_step
         else: 
             print "data not a candidate for FT"
@@ -137,10 +136,9 @@ def define_bins(data, num_bins):
             # center of bin, for plotting
             bins[0, 0] = dat_min + dat_step/2 
 
-        for i in range (num_l, (num_bins+1)):
-            for j in range(2):
+        for i in range(num_l, (num_bins+1)):
+            for j in range(3):
                 bins[i, j] = bins[(i - 1), j] + dat_step
-        print bins
         return bins  
 
 def compute_pdf(data, avg, num_bins=30, avg_step=0):
@@ -163,12 +161,12 @@ def quot_pos_neg(bins):
     quot = np.array((0,0)) 
     bin     = []
     val     = []
-    cutoff  = 10**(-2)
+    cutoff  = 10**(-4)
     for i in range(len(bins[0,:])):
         # compare bin centers
         if bins[0,i] < 0:
             for j in reversed(range(len(bins[0,:]-i))):
-                if ((bins[0,j] == -bins[0,i]) & (-bins[0,i] <= cutoff)) :
+                if ((bins[0,j] == -bins[0,i]) & (-bins[0,i] >= cutoff)) :
                     # - construct new array with bin center, and ratio
                     if bins[1,i] != 0:
                         bin.append(-bins[0,i])

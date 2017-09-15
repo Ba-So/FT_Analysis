@@ -139,7 +139,7 @@ def ft_analyse(data, avg, num_bins, out_path, max=2):
         else:
             data_lst2.append(helper2)
 
-    plt.plot_x(data, out_path)
+    #plt.plot_x(data, out_path)
     plt.plot_xy(data_lst, out_path + '_ft')    
     plt.plot_xy(data_lst2, out_path+'_pdf')    
 
@@ -150,9 +150,8 @@ def relate_e(data, out_path):
 
 if __name__== '__main__':
     idir        = '/home/kastor+pollux/kd031/icon-hex/experiments/'
-    pname       = 'HS_FT_2000_days/'
+    pname       = 'HS_FT_1000_days_v2/'
     file_name   = 'total_ddtkin_0001.dat'
-    file_name2  = 'total_ddtkin_0035.dat'
    # odir        = '/home/kd031/iconana/output/'
    # run_this2(idir, pname, fname, odir)
    # fname    = 'den_data.mat'
@@ -161,7 +160,7 @@ if __name__== '__main__':
    # file_path   = '/home/kd031/iconana/source/'
     print 'loading data set'
     file_path   = idir + pname
-    data        = io.read_files([file_path + file_name, file_path + file_name2])    
+    data        = io.read_file(file_path + file_name)    
     for key in data.iterkeys():
         print key
 
@@ -171,15 +170,17 @@ if __name__== '__main__':
     avg_step    = 0
     data_lst    = []
     data_lst2   = []
-    ds          = 720
-    disc        = 230*720
-    plt.plot_x([data['epothsf']], idir+pname + 'compare')
-   # avg         = dm.decorrelation_time(data['epothsf'][disc::], 120)
-   # if avg != None:
-   #     print "The decorrelation time is: {} hours".format(avg*120/(3600))
-   # plt.plot_xy_alt(data['epothsf'], idir + pname + 'epothsf')
+    num_s_day   = 720
+    ddays       = 200
+    disc        = ddays * num_s_day
+    #plt.plot_x_avg([data['epothsf'][disc::]], idir+pname + 'compare')
+    avg         = dm.decorrelation_time(data['epothsf'][disc::], 120)
+    if avg != None:
+        print "The decorrelation time is: {} hours".format(avg*120/(3600))
+    #plt.plot_x_avg([data['epothsf'][disc::]], idir + pname + 'epothsf')
 
-   # ft_analyse(data['epothsf'][disc::], avg, num_bins, idir+pname +'epothsf', 4)
+    ft_analyse(data['epothsf'][disc::], avg, num_bins, idir+pname
+            +'epothsf_ft_{}'.format(ddays), 4)
    # disc        = 300*720
    # ft_analyse(data['epothsf'][disc::], avg, num_bins, idir+pname +'epothsf', 4)
    # disc        = 400*720
