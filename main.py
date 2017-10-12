@@ -2,6 +2,7 @@ import os
 import sys
 import numpy as np
 import time
+import copy
 import custom_io as io
 import data_manip as dm
 import plot as plt
@@ -98,90 +99,153 @@ def run_this2(dir, pname, fname, odir):
     Ngl.end()
     count_time(t1)
 
-def denny_test(data, out_path, num_bins, avg, avg_step=0):
+def denny_test():
+
+    path='/home/kd031/projects/now'
+    file='/source/den_data.mat'
+    odir=path + '/output/'
+
+    data = io.read_matlab(path + file)
+
+    num_bins = 100
+    avg      = 50
+    avg_step = 0
+
     print 'number of bins {}, steps averaged over: {}'.format(num_bins, avg)
     # - compute timestep width
     dtime       = data['t'][1]-data['t'][0]
+    for key in data.iterkeys():
+        print key
+
     print 'tau = {}'.format(dtime*avg)
     # - compute pdf
-    print 'averaging step width_ {}'.format(avg_step)
-    print 'computing histogram (pdf)'
-    pdf_out     = dm.compute_pdf(data['P'], avg, num_bins, avg_step)
+    ft_analyse(data['P'], 3*avg, num_bins, odir, dtime, 5)
+    return
 
-    # - compute ft from pdf:H
-    print 'analysing relation of fluctuations (ft)'
-    ft_out      = dm.ft_analysis(pdf_out, dtime, avg)
-    lin_reg     = dm.lin_reg(ft_out)
-    ft_out      = np.concatenate((ft_out, [lin_reg]))
+def analyse_data(data, dtime, num_bins, avg, sgauss, avg_step=0):
 
-    # - print
-    param       = [num_bins, avg, avg_step]
-    return ft_out
-
-def analyse_data(data, dtime, num_bins, avg, avg_step=2):
-
-    pdf_out     = dm.compute_pdf(data, avg, num_bins, avg_step)    
-    ft_out      = dm.ft_analysis(pdf_out, dtime, avg)
-    if ft_out != None:
+    pdf_out     = dm.compute_pdf(data, avg, num_bins, sgauss, avg_step)    
+    ft_out      = dm.ft_analysis(pdf_out, dtime, avg, sgauss)
+    if not(ft_out is None):
         lin_reg     = dm.lin_reg(ft_out)
         ft_out      = np.concatenate((ft_out, [lin_reg]))
         return ft_out, pdf_out
     else:
         return None, pdf_out
 
-def ft_analyse(data, avg, num_bins, out_path, max=2):
+def ft_analyse(data, avg, num_bins, out_path, dtime, fancy, sgauss, max=2):
+    data_lst    = []
+    data_lst2   = []
     th          = np.array([avg * i for i in range(1,max)])
+    xlab        = fancy['xlabel']
+    fancy['label'] = ['data', 'fit']
+    fancypdf    = copy.deepcopy(fancy)
+    fancypdf['xlabel']= r'${}$'.format(xlab)
+    fancypdf['ylabel']= r'PDF(${}$)'.format(xlab)
+    fancypdf['title'] = r'propability distribution function of ${}$'.format(xlab)
+    fancyft    = copy.deepcopy(fancy)
+    fancyft['xlabel']= r'${}$'.format(xlab)
+    fancyft['ylabel']= r'$ln\left(\frac{ PDF(-' + r'{}'.format(xlab) \
+                     + r')}{PDF(' + r'{}'.format(xlab) + r')}\right)$'
+    fancyft['title'] = 'Fluctuation Relation for ${}$'.format(fancy['xlabel'])
+
     for ths in th:
-        helper, helper2  = analyse_data(data, 120, num_bins, ths)
-        if helper != None:
+        print 'tau={}'.format(ths)
+        helper, helper2  = analyse_data(data, dtime, num_bins, ths, sgauss)
+        if not(helper is None):
             data_lst.append(helper)
             data_lst2.append(helper2)
         else:
             data_lst2.append(helper2)
-
+            plt.plot_xy(data_lst2, out_path+'_pdf', fancypdf)    
+            if not(data_lst == []):
+                plt.plot_xy(data_lst, out_path + '_ft', fancyft)    
+            return
+    plt.plot_xy(data_lst2, out_path+'_pdf', fancypdf)    
+    plt.plot_xy(data_lst, out_path + '_ft', fancyft)    
     #plt.plot_x(data, out_path)
-    plt.plot_xy(data_lst, out_path + '_ft')    
-    plt.plot_xy(data_lst2, out_path+'_pdf')    
 
 def relate_e(data, out_path):
     # to get a hold of the relations of energies to one another
     pass
 
+def analyse_and_plot(file_path, file_name, out_path):
+
+    print 'loading data set'
+    for i in range(len(file_name)):
+        file_name[i] = file_path + file_name[i]
+    data        = io.read_files(file_name)    
+    for key in data.iterkeys():
+        print key
+
+    num_bins    = 300
+    avg_step    = 0
+    data_lst    = []
+    data_lst2   = []
+    num_step_day   = 720
+    disc_days       = 400
+    disc        = disc_days * num_step_day
+    dtime       = 120
+    sgauss      = True
+
+    #plt.plot_x_avg([data['epothsf'][disc::]], idir+pname + 'compare')
+    name        = 'ddteinnhsf'
+    print '#--------------------'
+    print '# analysing {}'.format(name)
+
+   # plt.plot_x_avg([data[name]], idir + pname + name + 'full')
+   # avg         = dm.decorrelation_time(data[name][disc::], dtime)
+   # if not(avg is None):
+   #     ft_analyse(data[name][disc::], avg, num_bins, idir+pname
+   #             +name + '_ft_{}'.format(disc_days), dtime, sgauss, 4)
+   # plt.plot_x_avg([data[name][disc::]], idir + pname + name)
+
+    #----------------
+    name        = 'ddtsint'
+    print '#--------------------'
+    print '# analysing {}'.format(name)
+
+    fancy = {'label' : '', 'title': 'material entropy production rates',
+             'xlabel': 'time steps', 'ylabel': r'\bar{\sigma}_t'} 
+    plt.plot_x_avg([data[name]], idir + pname + name + 'full', fancy)
+    avg         = dm.decorrelation_time(data[name][disc::], dtime)
+    if not(avg is None):
+        fancy = {'label' : '', 'title': 'material entropy production rates',
+                 'xlabel': r'\bar{\sigma}_t', 'ylabel': r'\bar{\sigma}_t',
+                 't_c': avg} 
+        ft_analyse(data[name][disc::], avg, num_bins, idir+pname
+                +name + '_ft_{}'.format(disc_days), dtime, fancy, sgauss, 4)
+
+   # plt.plot_x_avg([data[name][disc::]], idir + pname + name, fancy)
+
+    #------------------
+    name        = 'ddtshsf'
+    print '#--------------------'
+    print '# analysing {}'.format(name)
+    #plt.plot_x_avg([data[name]], idir + pname + name + 'full')
+    #avg         = dm.decorrelation_time(data[name][disc::], dtime)
+    #if not(avg is None):
+    #    ft_analyse(data[name][disc::], avg, num_bins, idir+pname
+    #            +name +'_ft_{}'.format(disc_days), dtime, sgauss, 4)
+    #plt.plot_x_avg([data[name][disc::]], idir + pname + name)
+
+    #------------------
 
 if __name__== '__main__':
     idir        = '/home/kastor+pollux/kd031/icon-hex/experiments/'
-    pname       = 'HS_FT_1000_days_v2/'
-    file_name   = 'total_ddtkin_0001.dat'
+    pname       = 'HS_FT_6000_days/'
+    file_name   = ['total_integrals_0001.dat'
+                  ,'total_integrals_0035.dat'
+                  ,'total_integrals_0069.dat'
+                  ,'total_integrals_0103.dat']
    # odir        = '/home/kd031/iconana/output/'
    # run_this2(idir, pname, fname, odir)
    # fname    = 'den_data.mat'
    # fpath    = '/home/kd031/iconana/source/'
    # file_name   = 'den_data.mat'
    # file_path   = '/home/kd031/iconana/source/'
-    print 'loading data set'
+
     file_path   = idir + pname
-    data        = io.read_file(file_path + file_name)    
-    for key in data.iterkeys():
-        print key
-
     out_path    = '/home/kd031/iconana/output/'
-    num_bins    = 100
-    avg         = [150, 225, 300, 450, 600]
-    avg_step    = 0
-    data_lst    = []
-    data_lst2   = []
-    num_s_day   = 720
-    ddays       = 200
-    disc        = ddays * num_s_day
-    #plt.plot_x_avg([data['epothsf'][disc::]], idir+pname + 'compare')
-    avg         = dm.decorrelation_time(data['epothsf'][disc::], 120)
-    if avg != None:
-        print "The decorrelation time is: {} hours".format(avg*120/(3600))
-    #plt.plot_x_avg([data['epothsf'][disc::]], idir + pname + 'epothsf')
-
-    ft_analyse(data['epothsf'][disc::], avg, num_bins, idir+pname
-            +'epothsf_ft_{}'.format(ddays), 4)
-   # disc        = 300*720
-   # ft_analyse(data['epothsf'][disc::], avg, num_bins, idir+pname +'epothsf', 4)
-   # disc        = 400*720
-   # ft_analyse(data['epothsf'][disc::], avg, num_bins, idir+pname +'epothsf', 4)
+    # denny_test()
+    analyse_and_plot(file_path, file_name, out_path)

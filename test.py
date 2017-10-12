@@ -2,6 +2,8 @@ import custom_io as io
 import data_manip as dm
 from random import randint
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 
 def test_names_cleanup():
@@ -182,9 +184,16 @@ def test_concat_dicts():
         print dict_test
         print 'pass'
 
+def test_gauss_fit():
+    x   = np.arange(10)
+    y   = np.array([0,1,2,3,4,5,4,3,2,1])
+    y2  = dm.gauss_fit(x, y)
+    plt.plot(x, y, 'b+:', label='data')
+    plt.plot(x, y2, 'r-', label='fit')
+    plt.show()
 
 if __name__== '__main__':
-   #test_names_cleanup()
+    #test_names_cleanup()
    #test_valdic()
    #test_compute_e()
    #test_read_file()
@@ -196,5 +205,6 @@ if __name__== '__main__':
    #test_quot_pos_neg()
    #test_ft_analysis()
    #test_read_matlab()
-   test_concat_dicts()
+   #test_concat_dicts()
+   test_gauss_fit()
 

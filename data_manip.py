@@ -2,7 +2,23 @@ from __future__ import division
 import numpy as np
 import custom_io as io
 from scipy import stats as st
+from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
+import math as math
+
+def gauss(x, a, x0, sigma):
+    return a * np.exp(-(x - x0)**2 / (2 * sigma**2))
+
+def gauss_fit(x, y):
+
+    n           = sum(y)
+    mean        = sum(x*y)/n
+    sigma       = np.sqrt(sum(y* (x - mean)**2) / n)
+    popt,pcov  = curve_fit(gauss, x, y, p0=[max(y), mean, sigma])
+    fit_val     = []
+    fit_val     = np.array([gauss(i, *popt) for i in x])
+    return fit_val
+
 
 def mean(values):
     """computes the mean of an array of values"""
@@ -90,10 +106,9 @@ def stepwise_mean(x, N, jump):
 
 def define_bins(data, num_bins):
     """defines bins for estimation of PDF"""
-    if len(data) <= (num_bins/2):
-        num_bins=len(data)/4
-    print "num_bins 1 {}".format(num_bins)
-
+    num_bins  = int(math.sqrt(len(data)))
+    print num_bins
+    print len(data)
     bins      = np.zeros(((num_bins+1), 3))
     if not (isinstance(data, np.ndarray) or isinstance(data, list)):
         print 'input data is not an np.array or list'
@@ -127,7 +142,7 @@ def define_bins(data, num_bins):
                 for j in range(3):
                     bins[i, j] = bins[i + 1, j] - dat_step
         else: 
-            print "data not a candidate for FT"
+            print "Data not a candidate for FT"
             num_l     =  1
             # lower bound of bin
             bins[0, 1] = dat_min 
@@ -141,10 +156,9 @@ def define_bins(data, num_bins):
                 bins[i, j] = bins[(i - 1), j] + dat_step
         return bins  
 
-def compute_pdf(data, avg, num_bins=30, avg_step=0):
-    """creates probability distribution using numpy.historgram"""
-    bins = define_bins(data, num_bins)
-    if avg == None:
+def compute_pdf(data, avg, num_bins=30, sgauss=False, avg_step=0):
+    """creates probability distribution using numpy.histogram"""
+    if avg is None:
         avg=1
     if avg_step==0:
         points      = running_mean(data, avg)
@@ -153,20 +167,26 @@ def compute_pdf(data, avg, num_bins=30, avg_step=0):
     else:
         print 'invalid avg_step {}'.format(avg_step)
         return None
-    test        = np.histogram(points, bins[:, 1], density = True)[0]
-    out         = np.array([np.array(bins[1:,0]),np.array( test)])
+    bins = define_bins(points, num_bins)
+    test        = np.histogram(points, bins[:, 1], density = False)[0]
+    if sgauss:
+        fgauss  = gauss_fit(np.array(bins[1:,0]), np.array(test)) 
+        out     = np.array([np.array(bins[1:,0]),np.array(test), np.array(fgauss)])
+    else:
+        out         = np.array([np.array(bins[1:,0]),np.array( test)])
+    del test, avg, points, bins
     return out
 
 def quot_pos_neg(bins): 
     quot = np.array((0,0)) 
     bin     = []
     val     = []
-    cutoff  = 10**(-4)
+    cutoff  = 1*10**(1)
     for i in range(len(bins[0,:])):
         # compare bin centers
         if bins[0,i] < 0:
             for j in reversed(range(len(bins[0,:]-i))):
-                if ((bins[0,j] == -bins[0,i]) & (-bins[0,i] >= cutoff)) :
+                if ((bins[0,j] == -bins[0,i]) & (bins[0,j] <= cutoff)) :
                     # - construct new array with bin center, and ratio
                     if bins[1,i] != 0:
                         bin.append(-bins[0,i])
@@ -176,19 +196,30 @@ def quot_pos_neg(bins):
             break
     bin = np.flipud(np.array(bin))
     val = np.flipud(np.array(val))
-    return np.array([bin,val])
+    out = np.array([bin, val])
+    del bin, val, bins
+    return out 
 
-def ft_analysis(pdf, dtime, avg):
+def ft_analysis(pdf, dtime, avg, sgauss = False):
     """computes the FT for input PDF"""
     # 1/t
     avgt    = 1/ (dtime * avg)
-    quot    = quot_pos_neg(pdf)
+    bins    = []
+
+    if sgauss:
+        bins    = np.array([pdf[0,:],pdf[2,:]])
+    else:
+        bins    = np.array([pdf[0,:],pdf[1,:]])
+
+    quot    = quot_pos_neg(bins)
+
     ft      = [[],[]]
     # turn ratio into ft-like logarithmic distribution.
     if quot.shape[1] > 1:
         for i in range(len(quot[1])):
             if quot[1,i] != 0:
-                ft[1].append(avgt * np.log(quot[1, i]))
+               #ft[1].append(avgt * np.log(quot[1, i]))
+                ft[1].append(       np.log(quot[1, i]))
                 ft[0].append(quot[0,i])
             else:
                 continue
@@ -196,7 +227,7 @@ def ft_analysis(pdf, dtime, avg):
         print "There is not enough data to conduct a ft analysis"
         return None
     ft      = np.array(ft)
-    return np.array(ft)
+    return ft
 
 def autocorrelation(data):
     """computes the autocorrelation as a function of k, of a data set.
@@ -237,19 +268,18 @@ def autocorrelation_taubenheim(data):
 
 def decorrelation_time(data, dtime):
     """computes decorrelation time of dataseries"""
-    print "decorr here"
     corr_tau    = autocorrelation_taubenheim(data)
     # - find first index at which correlation = 0
     bound       = 10**(-3)
     k           = np.argwhere(corr_tau<bound)       
 
     if len(k)<1:
-        print 'data set did not reach decorrelation time.'
+        print 'decorr: data set did not reach decorrelation time.'
         #plt.plot(corr_tau)
         #plt.show()
         return None
     else:
-        print 'The decorrelation time is {}'.format(k[0]*dtime/3600)
+        print 'decorr: The decorrelation time is {}'.format(k[0]*dtime/3600)
         #plt.plot(corr_tau)
         #plt.show()
         return k[0]
