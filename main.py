@@ -124,6 +124,7 @@ def denny_test():
 
 def analyse_data(data, dtime, num_bins, avg, sgauss, avg_step=0):
 
+    true_data   = []
     pdf_out     = dm.compute_pdf(data, avg, num_bins, sgauss, avg_step)    
     ft_out      = dm.ft_analysis(pdf_out, dtime, avg, sgauss)
     if not(ft_out is None):
@@ -151,10 +152,13 @@ def ft_analyse(data, avg, num_bins, out_path, dtime, fancy, sgauss, max=2):
 
     for ths in th:
         print 'tau={}'.format(ths)
-        helper, helper2  = analyse_data(data, dtime, num_bins, ths, sgauss)
+        helper, helper2 = analyse_data(data, dtime, num_bins, ths, sgauss)
         if not(helper is None):
             data_lst.append(helper)
             data_lst2.append(helper2)
+            if sgauss:
+                helper, helper2 = analyse_data(data, dtime, num_bins, ths, False)
+                data_lst.append(helper)
         else:
             data_lst2.append(helper2)
             plt.plot_xy(data_lst2, out_path+'_pdf', fancypdf)    
@@ -186,35 +190,37 @@ def analyse_and_plot(file_path, file_name, out_path):
     disc_days       = 400
     disc        = disc_days * num_step_day
     dtime       = 120
-    sgauss      = True
+    sgauss      = False
 
     #plt.plot_x_avg([data['epothsf'][disc::]], idir+pname + 'compare')
     name        = 'ddteinnhsf'
     print '#--------------------'
     print '# analysing {}'.format(name)
 
-   # plt.plot_x_avg([data[name]], idir + pname + name + 'full')
-   # avg         = dm.decorrelation_time(data[name][disc::], dtime)
-   # if not(avg is None):
-   #     ft_analyse(data[name][disc::], avg, num_bins, idir+pname
-   #             +name + '_ft_{}'.format(disc_days), dtime, sgauss, 4)
-   # plt.plot_x_avg([data[name][disc::]], idir + pname + name)
+    #plt.plot_x_avg([data[name]], out_path + name + 'full')
+    #avg         = dm.decorrelation_time(data[name][disc::], dtime)
+    #if not(avg is None):
+    #    ft_analyse(data[name][disc::], avg, num_bins, out_path
+    #            +name + '_ft_{}'.format(disc_days), dtime, sgauss, 4)
+    #plt.plot_x_avg([data[name][disc::]], out_path + name)
 
     #----------------
     name        = 'ddtsint'
     print '#--------------------'
     print '# analysing {}'.format(name)
 
-    fancy = {'label' : '', 'title': 'material entropy production rates',
-             'xlabel': 'time steps', 'ylabel': r'\bar{\sigma}_t'} 
-    plt.plot_x_avg([data[name]], idir + pname + name + 'full', fancy)
+    fancy = {'label' : '',
+             'title': r'material entropy production rates $\bar{\sigma}_t$ [J/(s K)]',
+             'xlabel': 'time steps',
+             'ylabel': r'$\bar{\sigma}_t$'} 
     avg         = dm.decorrelation_time(data[name][disc::], dtime)
+    #plt.plot_x_avg([data[name]], out_path + name + 'full', fancy, [disc])
     if not(avg is None):
-        fancy = {'label' : '', 'title': 'material entropy production rates',
-                 'xlabel': r'\bar{\sigma}_t', 'ylabel': r'\bar{\sigma}_t',
-                 't_c': avg} 
-        ft_analyse(data[name][disc::], avg, num_bins, idir+pname
-                +name + '_ft_{}'.format(disc_days), dtime, fancy, sgauss, 4)
+       fancy = {'label' : '', 'title': 'material entropy production rates',
+                'xlabel': r'\bar{\sigma}_t', 'ylabel': r'\bar{\sigma}_t',
+                't_c': avg} 
+       ft_analyse(data[name][disc::], avg, num_bins, out_path
+               +name + '_ft_{}'.format(disc_days), dtime, fancy, sgauss, 4)
 
    # plt.plot_x_avg([data[name][disc::]], idir + pname + name, fancy)
 
@@ -235,9 +241,12 @@ if __name__== '__main__':
     idir        = '/home/kastor+pollux/kd031/icon-hex/experiments/'
     pname       = 'HS_FT_6000_days/'
     file_name   = ['total_integrals_0001.dat'
-                  ,'total_integrals_0035.dat'
-                  ,'total_integrals_0069.dat'
-                  ,'total_integrals_0103.dat']
+                   ,'total_integrals_0035.dat'
+                   ,'total_integrals_0069.dat'
+                   ,'total_integrals_0103.dat'
+                   ,'total_integrals_0137.dat'
+                   ,'total_integrals_0171.dat'
+               ]
    # odir        = '/home/kd031/iconana/output/'
    # run_this2(idir, pname, fname, odir)
    # fname    = 'den_data.mat'
@@ -246,6 +255,6 @@ if __name__== '__main__':
    # file_path   = '/home/kd031/iconana/source/'
 
     file_path   = idir + pname
-    out_path    = '/home/kd031/iconana/output/'
+    out_path    = '/home/kd031/projects/now/output/'
     # denny_test()
     analyse_and_plot(file_path, file_name, out_path)

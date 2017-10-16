@@ -106,9 +106,10 @@ def read_files(file_names):
 
     for file_name in file_names:
         data.append(read_file(file_name))
+        print '{} read and appended'.format(file_name)
 
-    data_out    = concat_dicts(data[0], data[1]) 
-    for i in range(2, len(data)):
+    data_out    = data[0] 
+    for i in range(1, len(data)):
         data_out    = concat_dicts(data_out, data[i])
 
     return data_out 
@@ -172,3 +173,5 @@ def get_name_list(fdir):
         elif value.strip(".").isalpha():
             name_list[key] = convert_boolean(value)
     return name_list
+
+def write_analysis(data, name, odir)

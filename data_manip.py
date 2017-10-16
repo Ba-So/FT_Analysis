@@ -2,7 +2,7 @@ from __future__ import division
 import numpy as np
 import custom_io as io
 from scipy import stats as st
-from scipy.optimize import curve_fit
+from scipy.optimize import curve_fit, minimize
 import matplotlib.pyplot as plt
 import math as math
 
@@ -106,8 +106,8 @@ def stepwise_mean(x, N, jump):
 
 def define_bins(data, num_bins):
     """defines bins for estimation of PDF"""
-    num_bins  = int(math.sqrt(len(data)))
-    print num_bins
+    num_bins  = int(math.log(len(data),2))+1
+    print 'num_bins: {}'.format(num_bins)
     print len(data)
     bins      = np.zeros(((num_bins+1), 3))
     if not (isinstance(data, np.ndarray) or isinstance(data, list)):
@@ -186,7 +186,8 @@ def quot_pos_neg(bins):
         # compare bin centers
         if bins[0,i] < 0:
             for j in reversed(range(len(bins[0,:]-i))):
-                if ((bins[0,j] == -bins[0,i]) & (bins[0,j] <= cutoff)) :
+                if (np.allclose([bins[0,j]],[ -bins[0,i]], 1e-05, 1e-08,
+                    False) & (bins[0,j] <= cutoff)) :
                     # - construct new array with bin center, and ratio
                     if bins[1,i] != 0:
                         bin.append(-bins[0,i])
@@ -215,10 +216,11 @@ def ft_analysis(pdf, dtime, avg, sgauss = False):
 
     ft      = [[],[]]
     # turn ratio into ft-like logarithmic distribution.
+    print quot.shape[1]
     if quot.shape[1] > 1:
         for i in range(len(quot[1])):
             if quot[1,i] != 0:
-               #ft[1].append(avgt * np.log(quot[1, i]))
+                #ft[1].append(avgt * np.log(quot[1, i]))
                 ft[1].append(       np.log(quot[1, i]))
                 ft[0].append(quot[0,i])
             else:
@@ -247,6 +249,8 @@ def autocorrelation(data):
     return result
 
 def autocorrelation_taubenheim(data):
+    """computes autocorrelation using taubenheim algorithm
+        derelict"""
     print len(data)
     max         = 200000
     x           = np.reshape(data, len(data))  [:max]
@@ -283,6 +287,15 @@ def decorrelation_time(data, dtime):
         #plt.plot(corr_tau)
         #plt.show()
         return k[0]
+
+def optimize_discard(data):
+    """uses scipy.optimize.minimize to minimize
+       the amount of discarded data points by minimizing 
+       the decorrelation time"""
+    pass
+# fidgety and not yet to be called out!!!
+#    return minimize(decorrelation_time, data, method='nelder-mead')
+
 
 def lin_reg(data):
     x       = data[0]
