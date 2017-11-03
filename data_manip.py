@@ -104,11 +104,9 @@ def stepwise_mean(x, N, jump):
         out.append(data[i])
     return out
 
-def define_bins(data, num_bins):
+def define_bins(data):
     """defines bins for estimation of PDF"""
     num_bins  = int(math.log(len(data),2))+1
-    print 'num_bins: {}'.format(num_bins)
-    print len(data)
     bins      = np.zeros(((num_bins+1), 3))
     if not (isinstance(data, np.ndarray) or isinstance(data, list)):
         print 'input data is not an np.array or list'
@@ -156,10 +154,10 @@ def define_bins(data, num_bins):
                 bins[i, j] = bins[(i - 1), j] + dat_step
         return bins  
 
-def compute_pdf(data, avg, num_bins=30, sgauss=False, avg_step=0):
+def compute_pdf(data, avg, avg_step=0):
     """creates probability distribution using numpy.histogram"""
     if avg is None:
-        avg=1
+        avg = 0
     if avg_step==0:
         points      = running_mean(data, avg)
     elif avg_step > 0:
@@ -167,13 +165,9 @@ def compute_pdf(data, avg, num_bins=30, sgauss=False, avg_step=0):
     else:
         print 'invalid avg_step {}'.format(avg_step)
         return None
-    bins = define_bins(points, num_bins)
-    test        = np.histogram(points, bins[:, 1], density = False)[0]
-    if sgauss:
-        fgauss  = gauss_fit(np.array(bins[1:,0]), np.array(test)) 
-        out     = np.array([np.array(bins[1:,0]),np.array(test), np.array(fgauss)])
-    else:
-        out         = np.array([np.array(bins[1:,0]),np.array( test)])
+    bins = define_bins(points)
+    test        = np.histogram(points, bins[:, 1], density = True)[0]
+    out         = np.array([np.array(bins[1:,0]),np.array( test)])
     del test, avg, points, bins
     return out
 
@@ -201,40 +195,42 @@ def quot_pos_neg(bins):
     del bin, val, bins
     return out 
 
-def ft_analysis(pdf, dtime, avg, sgauss = False):
-    """computes the FT for input PDF"""
+def fr_analysis(pdf, dtime, avg):
+    """computes the FR for input PDF"""
     # 1/t
     avgt    = 1/ (dtime * avg)
     bins    = []
 
-    if sgauss:
-        bins    = np.array([pdf[0,:],pdf[2,:]])
-    else:
-        bins    = np.array([pdf[0,:],pdf[1,:]])
+    bins    = np.array([pdf[0,:],pdf[1,:]])
 
     quot    = quot_pos_neg(bins)
 
-    ft      = [[],[]]
+    fr      = [[],[]]
     # turn ratio into ft-like logarithmic distribution.
     print quot.shape[1]
     if quot.shape[1] > 1:
         for i in range(len(quot[1])):
             if quot[1,i] != 0:
+                #computing with division by \tau
                 #ft[1].append(avgt * np.log(quot[1, i]))
-                ft[1].append(       np.log(quot[1, i]))
-                ft[0].append(quot[0,i])
+                #computing without divison by \tau
+                fr[1].append(       np.log(quot[1, i]))
+                fr[0].append(quot[0,i])
             else:
                 continue
     else:
         print "There is not enough data to conduct a ft analysis"
         return None
-    ft      = np.array(ft)
-    return ft
+    fr[0]   = np.array(fr[0])
+    fr[1]   = np.array(fr[1])
+    fr      = np.array(fr)
+    return fr
 
 def autocorrelation(data):
     """computes the autocorrelation as a function of k, of a data set.
        input: data, as an 1Darray 
        output: correlation values, position in array = k   
+       currently NOT USED.
        """
     print "autocorr here"
     max         = 1000
@@ -249,9 +245,7 @@ def autocorrelation(data):
     return result
 
 def autocorrelation_taubenheim(data):
-    """computes autocorrelation using taubenheim algorithm
-        derelict"""
-    print len(data)
+    """computes autocorrelation using taubenheim algorithm"""
     max         = 200000
     x           = np.reshape(data, len(data))  [:max]
     n           = len(x)
@@ -270,7 +264,7 @@ def autocorrelation_taubenheim(data):
        # c       = np.append(c, (x[:(n-tau)]*x[tau:]).mean()-mean_sq)
     return c/c[0]
 
-def decorrelation_time(data, dtime):
+def decorrelation_time(data):
     """computes decorrelation time of dataseries"""
     corr_tau    = autocorrelation_taubenheim(data)
     # - find first index at which correlation = 0
@@ -279,13 +273,8 @@ def decorrelation_time(data, dtime):
 
     if len(k)<1:
         print 'decorr: data set did not reach decorrelation time.'
-        #plt.plot(corr_tau)
-        #plt.show()
         return None
     else:
-        print 'decorr: The decorrelation time is {}'.format(k[0]*dtime/3600)
-        #plt.plot(corr_tau)
-        #plt.show()
         return k[0]
 
 def optimize_discard(data):
@@ -301,8 +290,7 @@ def lin_reg(data):
     x       = data[0]
     y       = data[1]
     a,b     = st.linregress(x,y)[:2]
-    print a,b
-    return a*x+b
+    return [x, np.array(a*x+b)], a, b
 
 def findminmax_dict(dict, name, pos = 0):
     min = None

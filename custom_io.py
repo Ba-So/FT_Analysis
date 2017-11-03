@@ -174,4 +174,6 @@ def get_name_list(fdir):
             name_list[key] = convert_boolean(value)
     return name_list
 
-def write_analysis(data, name, odir)
+def write_analysis(data, name, odir):
+    """Output routine, for retrievability of processed data"""
+    pass
