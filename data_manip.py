@@ -290,7 +290,7 @@ def lin_reg(data):
     x       = data[0]
     y       = data[1]
     a,b     = st.linregress(x,y)[:2]
-    return [x, np.array(a*x+b)], a, b
+    return np.array([x, np.array(a*x+b)]), a, b
 
 def findminmax_dict(dict, name, pos = 0):
     min = None

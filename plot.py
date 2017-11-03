@@ -27,12 +27,14 @@ class Plot(object):
 
         if data.ndim == 1:
             # simple 1D plot information
-            self.fig = self.onedim_plot(data)
+            self.onedim_plot(data)
+            self.fig    = plt.gca()
 
         elif data.ndim == 2:
             # assuming 2D plot information
             if len(data) == 2:
-                self.fig = self.twodim_plot(data[0], data[1])
+                self.twodim_plot(data[0], data[1])
+                self.fig    = plt.gca()
             else:
                 # obviously there are cases here not taken into account
                 pass
@@ -48,6 +50,7 @@ class Plot(object):
                     self.kwargs['marker'] = marker.next()
                     self.kwargs['color']  = color
                     self.fig = self.onedim_plot(data[i][0])
+                self.fig    = plt.gca()
             # multiple 2D plots in 3D structure
             elif len(data[0,:,0]) == 2:
                 for i in range(np.shape(data)[0]):
@@ -55,6 +58,7 @@ class Plot(object):
                     self.kwargs['marker'] = marker.next()
                     self.kwargs['color']  = color
                     self.fig = self.twodim_plot(data[i][0], data[i][1])
+                self.fig    = plt.gca()
             # else I must assume 3D plot info. case not implemented.
             else:
                 pass
@@ -67,11 +71,13 @@ class Plot(object):
 
     def onedim_plot(self, x):
         "is performing oneD plotting"
-        return plt.plot(x, **self.kwargs)
+        ax  = plt.gca()
+        ax.plot(x, **self.kwargs)
 
     def twodim_plot(self, x, y):
         "is performing 2D plotting"
-        return plt.plot(x, y, **self.kwargs)
+        ax  = plt.gca()
+        ax.plot(x, y, **self.kwargs)
     
     def format_string(self, string):
         return r'$'+string+r'$'
@@ -110,22 +116,26 @@ class Lin_Reg(Plot):
     def linear_fit (self):
        """computes linear regression to fr"""
        if self.data is None:
+           print 'data None'
            pass
        elif self.data.ndim == 1:
            print 'Data Set is 1D array, require 2D array'
            # I know this is dumb.
        elif self.data.ndim == 2:
+           print '2dim'
            self.curve, self.fit_slope, self.fit_offs = dm.lin_reg(self.data)
 
        elif self.data.ndim == 3:
+           print '3dim'
            self.curve       = []
            self.fit_slope   = []
            self.fit_offs    = []
            for i in range(np.shape(self.data)[0]):
+               print '3dim durchgang {}'.format(i)
                curve, fit_slope, fit_offs = dm.lin_reg(self.data[i])
-               self.curve       = self.curve.append(np.array(curve))
-               self.fit_slope   = self.fit_slope.append(fit_slope)
-               self.fit_offs    = self.fit_offs.append(fit_offs)
+               self.curve.append(curve)
+               self.fit_slope.append(fit_slope)
+               self.fit_offs.append(fit_offs)
 
            self.curve       = np.array(self.curve) 
            self.fit_slope   = np.array(self.fit_slope) 

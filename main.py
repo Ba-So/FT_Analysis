@@ -70,9 +70,9 @@ def analyse_and_plot(file_path, file_name, out_path):
     print '# processing {}'.format(name)
 
     ddtsint = dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data[name], dtime, disc)
-    ddtsint.compute_multiple(3)
-    ddtsint.plot_pdf()
-    #ddtsint.plot_fr()
+    ddtsint.compute_multiple(1)
+    #ddtsint.plot_pdf()
+    ddtsint.plot_fr()
 
     return ddtsint
 
@@ -88,11 +88,11 @@ if __name__== '__main__':
     idir        = '/home/kastor+pollux/kd031/icon-hex/experiments/'
     pname       = 'HS_FT_6000_days/'
     file_name   = ['total_integrals_0001.dat'
-                  ,'total_integrals_0035.dat'
-                  ,'total_integrals_0069.dat'
-                  ,'total_integrals_0103.dat'
-                  ,'total_integrals_0137.dat'
-                  ,'total_integrals_0171.dat'
+                 # ,'total_integrals_0035.dat'
+                 # ,'total_integrals_0069.dat'
+                 # ,'total_integrals_0103.dat'
+                 # ,'total_integrals_0137.dat'
+                 # ,'total_integrals_0171.dat'
                ]
 
     file_path   = idir + pname
