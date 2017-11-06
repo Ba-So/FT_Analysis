@@ -83,6 +83,7 @@ def analyse_and_plot(file_path, file_name, out_path):
     ddtshsf.plot_pdf()
     ddtshsf.plot_fr()
 
+    return ddtshsf
    # fancy = {'label' : '',
     #         'title': r'material entropy production rates $\bar{\sigma}_t$ [J/(s K)]',
      #        'xlabel': 'time steps',

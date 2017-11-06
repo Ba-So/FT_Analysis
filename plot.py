@@ -20,6 +20,10 @@ class Plot(object):
         # plot figure
         self.plot()
     
+    def cla(self):
+        """close figure"""
+        self.fig.cla()
+
     def plot(self, data = None):
         """print data"""
         if data is None:
@@ -42,6 +46,7 @@ class Plot(object):
         elif data.ndim == 3:
             # multiple 1D plots in 3D structure
             # in consequence only way to have multiple 1D's
+            plt.gca().set_color_cycle(None)
             marker      = iter.cycle(('o','v','^','<','>','s','8','p'))
             ax          = plt.gca()
             if len(data[0,:,0]) == 1:
@@ -78,6 +83,7 @@ class Plot(object):
         "is performing 2D plotting"
         ax  = plt.gca()
         ax.plot(x, y, **self.kwargs)
+
     
     def format_string(self, string):
         return r'$'+string+r'$'
@@ -97,7 +103,7 @@ class Plot(object):
             plt.show(self.fig)
 
     def save(self):
-        if 'opath' in strings & oname in strings:
+        if ('opath' in self.strings) & ('oname' in self.strings):
             plt.savefig(self.strings['opath'] + self.strings['oname'])
         else:
             print 'Output Path and File Name not specified.'
@@ -112,7 +118,6 @@ class Lin_Reg(Plot):
         self.fit_offs  = None # offset of fit
         self.plot_linreg()
 
-
     def linear_fit (self):
        """computes linear regression to fr"""
        if self.data is None:
@@ -122,22 +127,19 @@ class Lin_Reg(Plot):
            print 'Data Set is 1D array, require 2D array'
            # I know this is dumb.
        elif self.data.ndim == 2:
-           print '2dim'
            self.fit_curve, self.fit_slope, self.fit_offs = dm.lin_reg(self.data)
 
        elif self.data.ndim == 3:
-           print '3dim'
            self.fit_curve       = []
            self.fit_slope   = []
            self.fit_offs    = []
            for i in range(np.shape(self.data)[0]):
-               print '3dim durchgang {}'.format(i)
                curve, fit_slope, fit_offs = dm.lin_reg(self.data[i])
                self.fit_curve.append(curve)
                self.fit_slope.append(fit_slope)
                self.fit_offs.append(fit_offs)
 
-           self.fit_curve       = np.array(self.fit_curve) 
+           self.fit_curve   = np.array(self.fit_curve) 
            self.fit_slope   = np.array(self.fit_slope) 
            self.fit_offs    = np.array(self.fit_offs)
 
@@ -149,8 +151,12 @@ class Lin_Reg(Plot):
         """adds a linear regression to a plot"""
         self.linear_fit()
         self.plot()
+        self.kwargs['linestyle'] = '-'
+        self.kwargs['ms']        = '0.0'
         self.plot(self.fit_curve)
-        self.show()
+        self.kwargs['linestyle'] = 'none'
+        self.kwargs['ms']        = '1.5'
+
 
 
 

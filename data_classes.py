@@ -126,11 +126,14 @@ class FRData(DataSet):
             labels['xlabel'] = r'{} / {}'.format(self.symbol, self.unit)
             labels['title']  = (r'probability distribution of values of '
                                 +r'${}$'.format(self.symbol))
+            labels['opath']  = 'output/'
+            labels['oname']  = self.name + '_pdf'
             kwargs           = {'linestyle': 'none','label':'',
                                 'marker':'o', 'ms': 1.5, 'lw':'1.0', 
                                 'color':'blue'}
             self.pdf_fig = pc.Plot(self.pdf, labels, **kwargs)
-            self.pdf_fig.show()
+            self.pdf_fig.save()
+            self.pdf_fig.cla()
     
     
     def plot_fr(self):
@@ -154,11 +157,16 @@ class FRData(DataSet):
                              + r'{}'.format(self.unit))
             labels['title']  =(r'fluctuation relation for '
                              + r'${}$'.format(self.symbol))
+            
+            labels['opath']  = 'output/'
+            labels['oname']  = self.name + '_fr'
+
             kwargs           = {'linestyle': 'none', 'label': '',
                                 'marker': 'o','lw': '1.0', 'color': 'blue',
                                 'ms': 1.5}
             self.fr_fig = pc.Lin_Reg(self.fr, labels, **kwargs)
-            self.fr_fig.show()
+            self.fr_fig.save()
+            self.fr_fig.cla()
 
     def plot(self):
         self.plot_pdf()
