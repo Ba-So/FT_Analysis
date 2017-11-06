@@ -1,5 +1,6 @@
 import os
 import sys
+import glob
 import numpy as np
 import time
 import copy
@@ -49,8 +50,6 @@ def count_time(t1=0):
 def analyse_and_plot(file_path, file_name, out_path):
 
     print 'loading data set'
-    for i in range(len(file_name)):
-        file_name[i] = file_path + file_name[i]
     data        = io.read_files(file_name)    
     for key in data.iterkeys():
         print key
@@ -65,7 +64,7 @@ def analyse_and_plot(file_path, file_name, out_path):
     dtime       = 120
 
     #----------------
-    name        = 'ddtsint'
+    name        = 'ddt_s_int'
     print '#--------------------'
     print '# processing {}'.format(name)
 
@@ -87,15 +86,11 @@ def analyse_and_plot(file_path, file_name, out_path):
 if __name__== '__main__':
     idir        = '/home/kastor+pollux/kd031/icon-hex/experiments/'
     pname       = 'HS_FT_6000_days/'
-    file_name   = ['total_integrals_0001.dat'
-                 # ,'total_integrals_0035.dat'
-                 # ,'total_integrals_0069.dat'
-                 # ,'total_integrals_0103.dat'
-                 # ,'total_integrals_0137.dat'
-                 # ,'total_integrals_0171.dat'
-               ]
-
     file_path   = idir + pname
+    file_name   = []
+    for file in sorted(glob.glob(file_path+'*.csv')):
+        file_name.append(file)
+
     out_path    = '/home/kd031/projects/now/output/'
     # denny_test()
     ddtsint = analyse_and_plot(file_path, file_name, out_path)
