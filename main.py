@@ -7,7 +7,7 @@ import copy
 import custom_io as io
 import data_manip as dm
 import plot as plt
-import data_classes.py as dc_
+import data_classes as dc
 
 
 def count_time(t1=0):
@@ -73,19 +73,15 @@ def analyse_and_plot(file_path, file_name, out_path):
     ddtsint.plot_pdf()
     ddtsint.plot_fr()
 
-    return ddtsint
-
     #----------------
-    name        = 'ddt_s_int'
+    name        = 'ddt_s_hsf'
     print '#--------------------'
     print '# processing {}'.format(name)
 
-    ddtsint = dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data[name], dtime, disc)
-    ddtsint.compute_multiple(1)
-    ddtsint.plot_pdf()
-    ddtsint.plot_fr()
-
-    return ddtsint
+    ddtshsf = dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data[name], dtime, disc)
+    ddtshsf.compute_multiple(1)
+    ddtshsf.plot_pdf()
+    ddtshsf.plot_fr()
 
    # fancy = {'label' : '',
     #         'title': r'material entropy production rates $\bar{\sigma}_t$ [J/(s K)]',
@@ -96,6 +92,7 @@ def analyse_and_plot(file_path, file_name, out_path):
       #       't_c': avg} 
 
 if __name__== '__main__':
+    t1          = count_time()
     idir        = '/home/kastor+pollux/kd031/icon-hex/experiments/'
     pname       = 'HS_FT_6000_days/'
     file_path   = idir + pname
@@ -106,3 +103,4 @@ if __name__== '__main__':
     out_path    = '/home/kd031/projects/now/output/'
     # denny_test()
     ddtsint = analyse_and_plot(file_path, file_name, out_path)
+    count_time(t1)
