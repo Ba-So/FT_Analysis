@@ -1,67 +1,8 @@
 import numpy as np
+import pandas as pd
 import os
 import sys
 from scipy import io as scio
-
-def remove_whites(strings):
-    nowhites = []
-    for string in strings:
-        nowhites.append(string.strip())
-    return nowhites
-
-def remove_oddchars(name):
-    """removes all non chars or digits from a string"""
-   
-    chars = list(name)
-    out_name = ''
-    for char in chars:
-        if char.isdigit() or char.isalpha():
-            out_name += char
-        else:
-            pass
-    return out_name
-
-def clean_oddchars(names):
-    """removes all non chars or digits from array of strings"""
-    out_names = []
-    for name in names:
-        out_names.append(remove_oddchars(name))
-    return out_names
-
-def names_cleanup(names):
-    """nasty cleanup routine"""
-    # - fast alle sind via , getrennt
-    c_names = np.array(names.split(','))
-    # - nur der erste und zweite Eintrag nicht
-    #help = c_names[0].split()
-    #print help
-    # - rejoin scnd entry
-    #help = np.array([help[0], (help[1]+help[2])])
-    # - der letzte Eintrag ist versehentlich mit . getrennt
-    #help2 = np.array(c_names[len(c_names)-1].strip('.').split('.'))
-
-    #help    = np.concatenate((help, c_names[1:len(c_names)-1], help2[0:2]))
-    # - remove all spaces from strings
-    names = remove_whites(c_names)
-    return clean_oddchars(names)
-   
-def resort_array(data):
-    """Function changes from a column of lines
-       to a line of columns.
-       """
-    # - length of lines. 
-    lenx    = len(data[0])
-    # - length of columns. 
-    leny    = len(data) 
-    out     = []
-    # - step the lines
-    for i in range(lenx):
-        out.append([])
-        # - step the columns
-        for j in range(leny):
-            out[i].append(data[j][i])
-    
-    return out
 
 def read_file(file_name):
     """reads contents of a file line by line
@@ -69,23 +10,12 @@ def read_file(file_name):
         first line is assumed to contain variable names
         lines below are values in columns
     """
-    file = open((file_name), 'r')
-    lines = file.readlines()
-    file.close()
-    
-    data = []
-    names= names_cleanup(lines[0])
 
-    for line in lines[1:]:
-        a = line.split() 
-        data.append([float(i) for i in a])
-
-    data        = resort_array(data)
-    data_dict   = {}
-    for i in range(len(names)):
-        data_dict[names[i]] = data[i][:]
+    data   = pd.read_csv(file_name, sep=',', header=0)
+    data_dict = data.to_dict('list')
 
     return data_dict 
+
 def concat_dicts(dicta, dictb):
     dict_out = {}
     for key in dicta.iterkeys():
@@ -174,6 +104,3 @@ def get_name_list(fdir):
             name_list[key] = convert_boolean(value)
     return name_list
 
-def write_analysis(data, name, odir):
-    """Output routine, for retrievability of processed data"""
-    pass
