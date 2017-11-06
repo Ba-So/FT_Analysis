@@ -219,7 +219,7 @@ def fr_analysis(pdf, dtime, avg):
             else:
                 continue
     else:
-        print "There is not enough data to conduct a ft analysis"
+        print "There is not enough data to conduct a fr analysis"
         return None
     fr[0]   = np.array(fr[0])
     fr[1]   = np.array(fr[1])
@@ -314,19 +314,3 @@ def findminmax_dict(dict, name, pos = 0):
             print min
             print max
     return min, max
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    
-
-

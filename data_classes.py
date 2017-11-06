@@ -46,8 +46,6 @@ class FRData(DataSet):
         self.optimize_discard() # not yet functional
         self.discard()
         self.compute_decorrelation_time()
-        self.pdf       = self.compute_pdf(self.tau_c)
-        self.fr        = self.compute_fr(self.pdf)
     
     # Classes ATTRIBUTES:
 
@@ -98,28 +96,22 @@ class FRData(DataSet):
             print 'invalid or no decorelation time for dataset, aborting'
             pass
         else:
-            self.pdf    = [self.pdf]
-            self.fr     = [self.fr]
-            for i in range(1, times):
+            self.pdf    = []
+            self.fr     = []
+            for i in range(0, times):
+                print 'Durchgang {}'.format(i+1)
                 fr_help = None
                 inter   = None
                 self.pdf.append(self.compute_pdf((i+1)*self.tau_c))
                 inter = self.compute_fr(self.pdf[i])
                 if inter is not None:
-                    fr_help = self.compute_fr(inter)
-                if fr_help is not None:
-                    fr.append(fr_help)
-            print type(self.pdf)
-            print type(self.fr)
-    
+                    fr.append(inter)
             self.pdf    = np.array(self.pdf)
-            self.fr     = np.array(self.fr)
+            if self.fr:
+                self.fr     = np.array(self.fr)
+            else:
+                self.fr     = None
 
-            print type(self.pdf)
-            print type(self.fr)
-            
-            print self.pdf.ndim
-            print self.fr.ndim
 
     def plot_pdf(self):
         """print self.pdf"""
@@ -197,18 +189,3 @@ class GaussData( FRData ):
 class PrintFancy():
     """only responsible for the setting of various print parameters"""
     pass
-
-   # not entirely sure yet how to do this.
-   #def __init__(self, xstring, ystring, title, label):
-# working with inheritance?
-
-#class DataPDF( DataSet ):
-#    pass
-
-#class DataFR( DataSet ):
-    
-#    def __init__():
-#        self.pdf    = DataPDF()  ???
-
-
-

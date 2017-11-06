@@ -123,21 +123,21 @@ class Lin_Reg(Plot):
            # I know this is dumb.
        elif self.data.ndim == 2:
            print '2dim'
-           self.curve, self.fit_slope, self.fit_offs = dm.lin_reg(self.data)
+           self.fit_curve, self.fit_slope, self.fit_offs = dm.lin_reg(self.data)
 
        elif self.data.ndim == 3:
            print '3dim'
-           self.curve       = []
+           self.fit_curve       = []
            self.fit_slope   = []
            self.fit_offs    = []
            for i in range(np.shape(self.data)[0]):
                print '3dim durchgang {}'.format(i)
                curve, fit_slope, fit_offs = dm.lin_reg(self.data[i])
-               self.curve.append(curve)
+               self.fit_curve.append(curve)
                self.fit_slope.append(fit_slope)
                self.fit_offs.append(fit_offs)
 
-           self.curve       = np.array(self.curve) 
+           self.fit_curve       = np.array(self.fit_curve) 
            self.fit_slope   = np.array(self.fit_slope) 
            self.fit_offs    = np.array(self.fit_offs)
 
@@ -149,7 +149,7 @@ class Lin_Reg(Plot):
         """adds a linear regression to a plot"""
         self.linear_fit()
         self.plot()
-        self.plot(self.curve)
+        self.plot(self.fit_curve)
         self.show()
 
 

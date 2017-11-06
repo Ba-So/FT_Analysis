@@ -7,7 +7,7 @@ import copy
 import custom_io as io
 import data_manip as dm
 import plot as plt
-import a_new_hope as dc
+import data_classes.py as dc_
 
 
 def count_time(t1=0):
@@ -70,7 +70,19 @@ def analyse_and_plot(file_path, file_name, out_path):
 
     ddtsint = dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data[name], dtime, disc)
     ddtsint.compute_multiple(1)
-    #ddtsint.plot_pdf()
+    ddtsint.plot_pdf()
+    ddtsint.plot_fr()
+
+    return ddtsint
+
+    #----------------
+    name        = 'ddt_s_int'
+    print '#--------------------'
+    print '# processing {}'.format(name)
+
+    ddtsint = dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data[name], dtime, disc)
+    ddtsint.compute_multiple(1)
+    ddtsint.plot_pdf()
     ddtsint.plot_fr()
 
     return ddtsint
