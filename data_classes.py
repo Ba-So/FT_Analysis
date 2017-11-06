@@ -105,7 +105,7 @@ class FRData(DataSet):
                 self.pdf.append(self.compute_pdf((i+1)*self.tau_c))
                 inter = self.compute_fr(self.pdf[i])
                 if inter is not None:
-                    fr.append(inter)
+                    self.fr.append(inter)
             self.pdf    = np.array(self.pdf)
             if self.fr:
                 self.fr     = np.array(self.fr)
