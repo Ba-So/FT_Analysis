@@ -85,10 +85,7 @@ class FRData(DataSet):
                    Fluctuation Relation'''
             pass
         else:
-            inter = dm.fr_analysis(pdf, self.dtime, self.tau_c)
-            
-            return inter 
-
+            return dm.fr_analysis(pdf, self.dtime, self.tau_c)
     
     def compute_multiple(self, times):
         """computes pdf's and fr's for multiples of tau_c"""
@@ -99,17 +96,13 @@ class FRData(DataSet):
             self.pdf    = []
             self.fr     = []
             for i in range(0, times):
-                print 'Durchgang {}'.format(i+1)
                 fr_help = None
                 inter   = None
                 self.pdf.append(self.compute_pdf((i+1)*self.tau_c))
                 inter = self.compute_fr(self.pdf[i])
                 if inter is not None:
                     self.fr.append(inter)
-            self.pdf    = np.array(self.pdf)
-            if self.fr:
-                self.fr     = np.array(self.fr)
-            else:
+            if not self.fr:
                 self.fr     = None
 
 

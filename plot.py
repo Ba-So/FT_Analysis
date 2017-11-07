@@ -25,49 +25,34 @@ class Plot(object):
         self.fig.cla()
 
     def plot(self, data = None):
-        """print data"""
+        """print data
+        takes lists of np.arrays"""
         if data is None:
             data = self.data
 
-        if data.ndim == 1:
-            # simple 1D plot information
-            self.onedim_plot(data)
-            self.fig    = plt.gca()
-
-        elif data.ndim == 2:
-            # assuming 2D plot information
-            if len(data) == 2:
-                self.twodim_plot(data[0], data[1])
-                self.fig    = plt.gca()
-            else:
-                # obviously there are cases here not taken into account
-                pass
-
-        elif data.ndim == 3:
-            # multiple 1D plots in 3D structure
-            # in consequence only way to have multiple 1D's
+        if len(data) >= 1:
+            # multiple 2D plots  3D structure
             plt.gca().set_color_cycle(None)
             marker      = iter.cycle(('o','v','^','<','>','s','8','p'))
             ax          = plt.gca()
-            if len(data[0,:,0]) == 1:
-                for i in range(np.shape(data)[0]):
+            for i in range(len(data)):
+                # multiple 1D plots  3D structure
+                if data[i].ndim == 1:
                     color    = next(ax._get_lines.prop_cycler)['color']
                     self.kwargs['marker'] = marker.next()
                     self.kwargs['color']  = color
                     self.fig = self.onedim_plot(data[i][0])
-                self.fig    = plt.gca()
-            # multiple 2D plots in 3D structure
-            elif len(data[0,:,0]) == 2:
-                for i in range(np.shape(data)[0]):
+                # multiple 2D plots in 3D structure
+                elif data[i].ndim == 2:
                     color    = next(ax._get_lines.prop_cycler)['color']
                     self.kwargs['marker'] = marker.next()
                     self.kwargs['color']  = color
                     self.fig = self.twodim_plot(data[i][0], data[i][1])
-                self.fig    = plt.gca()
             # else I must assume 3D plot info. case not implemented.
-            else:
-                pass
-        # 4D data structures and above not implemented.
+                else:
+                    pass
+            # 4D data structures and above not implemented.
+            self.fig    = plt.gca()
         else:
             pass
         # mark axes and title
@@ -120,31 +105,29 @@ class Lin_Reg(Plot):
 
     def linear_fit (self):
        """computes linear regression to fr"""
+
+       self.fit_curve   = []
+       self.fit_slope   = []
+       self.fit_offs    = []
+
        if self.data is None:
            print 'data None'
            pass
-       elif self.data.ndim == 1:
-           print 'Data Set is 1D array, require 2D array'
-           # I know this is dumb.
-       elif self.data.ndim == 2:
-           self.fit_curve, self.fit_slope, self.fit_offs = dm.lin_reg(self.data)
 
-       elif self.data.ndim == 3:
-           self.fit_curve       = []
-           self.fit_slope   = []
-           self.fit_offs    = []
-           for i in range(np.shape(self.data)[0]):
-               curve, fit_slope, fit_offs = dm.lin_reg(self.data[i])
-               self.fit_curve.append(curve)
-               self.fit_slope.append(fit_slope)
-               self.fit_offs.append(fit_offs)
-
-           self.fit_curve   = np.array(self.fit_curve) 
-           self.fit_slope   = np.array(self.fit_slope) 
-           self.fit_offs    = np.array(self.fit_offs)
-
+       if len(self.data) >= 1:
+           for i in range(len(self.data)):
+               if self.data[i].ndim == 2: 
+                   curve, fit_slope, fit_offs = dm.lin_reg(self.data[i])
+                   self.fit_curve.append(curve)
+                   self.fit_slope.append(fit_slope)
+                   self.fit_offs.append(fit_offs)
+               elif self.data.ndim == 1:
+                   print 'Data Set is 1D array, require 2D array'
+                   # I know this is dumb.
+               else:
+                   print 'data set has to many dimensions, not compatible' 
        else:
-           print 'data set has to many dimensions, not compatible' 
+           print 'data empty'
 
 
     def plot_linreg(self):

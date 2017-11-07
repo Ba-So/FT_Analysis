@@ -69,7 +69,7 @@ def analyse_and_plot(file_path, file_name, out_path):
     print '# processing {}'.format(name)
 
     ddtsint = dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data[name], dtime, disc)
-    ddtsint.compute_multiple(1)
+    ddtsint.compute_multiple(2)
     ddtsint.plot_pdf()
     ddtsint.plot_fr()
 
@@ -79,11 +79,20 @@ def analyse_and_plot(file_path, file_name, out_path):
     print '# processing {}'.format(name)
 
     ddtshsf = dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data[name], dtime, disc)
-    ddtshsf.compute_multiple(1)
+    ddtshsf.compute_multiple(2)
     ddtshsf.plot_pdf()
     ddtshsf.plot_fr()
+    
+    #----------------
+    name        = 'ddt_einn_hsf'
+    print '#--------------------'
+    print '# processing {}'.format(name)
 
-    return ddtshsf
+    ddteihsf= dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data[name], dtime, disc)
+    ddteihsf.compute_multiple(2)
+    ddteihsf.plot_pdf()
+    ddteihsf.plot_fr()
+
    # fancy = {'label' : '',
     #         'title': r'material entropy production rates $\bar{\sigma}_t$ [J/(s K)]',
      #        'xlabel': 'time steps',
@@ -103,5 +112,5 @@ if __name__== '__main__':
 
     out_path    = '/home/kd031/projects/now/output/'
     # denny_test()
-    ddtsint = analyse_and_plot(file_path, file_name, out_path)
+    analyse_and_plot(file_path, file_name, out_path)
     count_time(t1)
