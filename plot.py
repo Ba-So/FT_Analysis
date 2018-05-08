@@ -19,7 +19,7 @@ class Plot(object):
         self.fig    = None
         # plot figure
         self.plot()
-    
+
     def cla(self):
         """close figure"""
         self.fig.cla()
@@ -27,32 +27,40 @@ class Plot(object):
     def plot(self, data = None):
         """print data
         takes lists of np.arrays"""
+        # Obviusly this is the dumbest implementation, if supposed to be used
+        # for more than this one thing...
         if data is None:
             data = self.data
-
-        if len(data) >= 1:
+        if len(np.shape(data)) > 1:
             # multiple 2D plots  3D structure
             plt.gca().set_color_cycle(None)
             marker      = iter.cycle(('o','v','^','<','>','s','8','p'))
             ax          = plt.gca()
-            for i in range(len(data)):
-                # multiple 1D plots  3D structure
-                if data[i].ndim == 1:
+            for i,j in enumerate(data[0,]):
+                # multiple 1D plots 2D structure
+                if np.shape(data[i])[0] == 1:
                     color    = next(ax._get_lines.prop_cycler)['color']
                     self.kwargs['marker'] = marker.next()
                     self.kwargs['color']  = color
-                    self.fig = self.onedim_plot(data[i][0])
+                    self.fig = self.onedim_plot(data[i, 0])
                 # multiple 2D plots in 3D structure
-                elif data[i].ndim == 2:
+                elif np.shape(data[i])[0] == 2:
                     color    = next(ax._get_lines.prop_cycler)['color']
                     self.kwargs['marker'] = marker.next()
                     self.kwargs['color']  = color
-                    self.fig = self.twodim_plot(data[i][0], data[i][1])
+                    self.fig = self.twodim_plot(data[i, 0], data[i, 1])
             # else I must assume 3D plot info. case not implemented.
                 else:
                     pass
             # 4D data structures and above not implemented.
             self.fig    = plt.gca()
+        elif len(shape(data)) == 1:
+            color    = next(ax._get_lines.prop_cycler)['color']
+            self.kwargs['marker'] = marker.next()
+            self.kwargs['color']  = color
+            self.fig = self.onedim_plot(data[i][0])
+            self.fig    = plt.gca()
+
         else:
             pass
         # mark axes and title
@@ -69,7 +77,7 @@ class Plot(object):
         ax  = plt.gca()
         ax.plot(x, y, **self.kwargs)
 
-    
+
     def format_string(self, string):
         return r'$'+string+r'$'
 
@@ -97,7 +105,7 @@ class Lin_Reg(Plot):
     """daughter class of Plot, which adds a linear Refression Fit
        to the plot in Question"""
     def __init__(self, data, strings, **kwargs):
-        Plot.__init__(self, data, strings, **kwargs)   
+        Plot.__init__(self, data, strings, **kwargs)
         self.fit_curve = None # curve of fit to self.fr
         self.fit_slope = None # slope of fit
         self.fit_offs  = None # offset of fit
@@ -116,7 +124,7 @@ class Lin_Reg(Plot):
 
        if len(self.data) >= 1:
            for i in range(len(self.data)):
-               if self.data[i].ndim == 2: 
+               if self.data[i].ndim == 2:
                    curve, fit_slope, fit_offs = dm.lin_reg(self.data[i])
                    self.fit_curve.append(curve)
                    self.fit_slope.append(fit_slope)
@@ -125,7 +133,7 @@ class Lin_Reg(Plot):
                    print 'Data Set is 1D array, require 2D array'
                    # I know this is dumb.
                else:
-                   print 'data set has to many dimensions, not compatible' 
+                   print 'data set has to many dimensions, not compatible'
        else:
            print 'data empty'
 
