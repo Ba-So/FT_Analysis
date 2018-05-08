@@ -50,7 +50,19 @@ def count_time(t1=0):
 def analyse_and_plot(file_path, file_name, out_path):
 
     print 'loading data set'
-    data        = io.read_files(file_name)    
+    # data        = io.read_files(file_name)
+
+    quarks = {
+        'variables' : ['t_fric']
+    }
+    data = {}
+    func = lambda ds, quarks: io.extract_variables(ds, **quarks)
+    data_s      = io.read_netcdfs(file_name, 'time', quarks, func)
+    data_s = data_s['t_fric'].values
+    print data_s[1,1,3:10]
+    data['t_fric'] = np.reshape(data_s, np.prod(data_s.shape))
+    print data['t_fric'][3:10]
+
     for key in data.iterkeys():
         print key
 
@@ -59,47 +71,53 @@ def analyse_and_plot(file_path, file_name, out_path):
     data_lst    = []
     data_lst2   = []
     num_step_day   = 720
-    disc_days       = 400
+    disc_days       = 0
     disc        = disc_days * num_step_day
     dtime       = 120
 
     #----------------
-    name        = 'ddt_s_int'
+    name        = 'turbulent_friction'
     print '#--------------------'
     print '# processing {}'.format(name)
 
-    ddtsint = dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data[name], dtime, disc)
-    ddtsint.compute_multiple(2)
+    ddtsint = dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data['t_fric'], dtime, disc)
+    print ddtsint.data.shape
+    ddtsint.pdf = ddtsint.compute_pdf(None)
+    ddtsint.tau_c = 3
+    ddtsint.fr = ddtsint.compute_fr(ddtsint.pdf)
+    # ddtsint.compute_multiple(2)
     ddtsint.plot_pdf()
     ddtsint.plot_fr()
+    ddtsint.plot()
+    print type(ddtsint.data)
 
     #----------------
-    name        = 'ddt_s_hsf'
-    print '#--------------------'
-    print '# processing {}'.format(name)
+  #  name        = 'ddt_s_hsf'
+  #  print '#--------------------'
+  #  print '# processing {}'.format(name)#
 
-    ddtshsf = dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data[name], dtime, disc)
-    ddtshsf.compute_multiple(2)
-    ddtshsf.plot_pdf()
-    ddtshsf.plot_fr()
-    
+  #  ddtshsf = dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data[name], dtime, disc)
+  #  ddtshsf.compute_multiple(2)
+  #  ddtshsf.plot_pdf()
+ #   ddtshsf.plot_fr()
+
     #----------------
-    name        = 'ddt_einn_hsf'
-    print '#--------------------'
-    print '# processing {}'.format(name)
+  #  name        = 'ddt_einn_hsf'
+  #  print '#--------------------'
+  #  print '# processing {}'.format(name)
 
-    ddteihsf= dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data[name], dtime, disc)
-    ddteihsf.compute_multiple(2)
-    ddteihsf.plot_pdf()
-    ddteihsf.plot_fr()
+  #  ddteihsf= dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data[name], dtime, disc)
+  #  ddteihsf.compute_multiple(2)
+  #  ddteihsf.plot_pdf()
+  #  ddteihsf.plot_fr()
 
    # fancy = {'label' : '',
     #         'title': r'material entropy production rates $\bar{\sigma}_t$ [J/(s K)]',
      #        'xlabel': 'time steps',
-      #       'ylabel': r'$\bar{\sigma}_t$'} 
+      #       'ylabel': r'$\bar{\sigma}_t$'}
     #fancy = {'label' : '', 'title': 'material entropy production rates',
      #        'xlabel': r'\bar{\sigma}_t', 'ylabel': r'\bar{\sigma}_t',
-      #       't_c': avg} 
+      #       't_c': avg}
 
 if __name__== '__main__':
     t1          = count_time()
@@ -107,8 +125,9 @@ if __name__== '__main__':
     pname       = 'HS_FT_6000_days/'
     file_path   = idir + pname
     file_name   = []
-    for file in sorted(glob.glob(file_path+'*.csv')):
-        file_name.append(file)
+    for file in sorted(glob.glob(file_path+'HS_FT_6000_days*refined*.nc')):
+       file_name.append(file)
+       print('appended: {}').format(file)
 
     out_path    = '/home/kd031/projects/now/output/'
     # denny_test()

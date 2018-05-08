@@ -1,0 +1,4 @@
+# don't gitify .pyc files:
+*.pyc
+output/*
+source/*
