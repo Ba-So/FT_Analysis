@@ -14,7 +14,7 @@ class DataSet(object):
         self.dtime     = dtime # time step of dataset
         self.disc      = disc # to be discarded number of initial data points
         self.fig       = None # figure object to be passed back and forth
-    
+
     def discard(self):
         """throws discarded data points"""
         if len(self.data) > self.disc:
@@ -22,8 +22,9 @@ class DataSet(object):
         else:
             print 'invalid Parameter for discard of data points'
             self.disc   = None
+
     def plot_data(self):
-        # mind the $ and r's for latex formatted printing 
+        # mind the $ and r's for latex formatted printing
         labels['ylabel'] = r'${} / {}$'.format(symbol, unit)
         # lacks universality, but based on use is ok
         labels['xlabel'] = 'timesteps in s'
@@ -42,11 +43,11 @@ class FRData(DataSet):
         self.avg_step  = avg_step # not yet active, for discrete averaging
         self.pdf       = None # propability distribution function
         self.fr        = None # fluctuation relation
-        # initial computations. 
+        # initial computations.
         self.optimize_discard() # not yet functional
-        self.discard()
-        self.compute_decorrelation_time()
-    
+        # self.discard()
+        # self.compute_decorrelation_time()
+
     # Classes ATTRIBUTES:
 
     # Classes METHODS:
@@ -58,7 +59,7 @@ class FRData(DataSet):
         pass
         # not yet active
         # self.disc, self.tau_c   = minimize_scalar (self.discard)
-    
+
 
     def compute_decorrelation_time(self):
         """compute decorrelation time,
@@ -69,11 +70,11 @@ class FRData(DataSet):
             pass
         pass
         # not yet active, changes in dm first
-        self.tau_c  = dm.decorrelation_time(self.data)[0] 
+        self.tau_c  = dm.decorrelation_time(self.data)[0]
 
     def compute_pdf(self, tau_c):
         """compute pdf from contained data"""
-        return dm.compute_pdf(self.data, tau_c) 
+        return dm.compute_pdf(self.data, tau_c)
 
     def compute_fr (self, pdf):
         """compute fr from contained data"""
@@ -86,7 +87,7 @@ class FRData(DataSet):
             pass
         else:
             return dm.fr_analysis(pdf, self.dtime, self.tau_c)
-    
+
     def compute_multiple(self, times):
         """computes pdf's and fr's for multiples of tau_c"""
         if self.tau_c is None:
@@ -113,7 +114,7 @@ class FRData(DataSet):
             pass
         else:
             labels = {}
-            # mind the $ and r's for latex formatted printing 
+            # mind the $ and r's for latex formatted printing
             labels['ylabel'] = r'PDF(\langle\bar{'+r'{}'.format(self.symbol)+r'_{\tau}}\rangle)'
             # lacks universality, but based on use is ok
             labels['xlabel'] = r'{} / {}'.format(self.symbol, self.unit)
@@ -122,13 +123,13 @@ class FRData(DataSet):
             labels['opath']  = 'output/'
             labels['oname']  = self.name + '_pdf'
             kwargs           = {'linestyle': 'none','label':'',
-                                'marker':'o', 'ms': 1.5, 'lw':'1.0', 
+                                'marker':'o', 'ms': 1.5, 'lw':'1.0',
                                 'color':'blue'}
             self.pdf_fig = pc.Plot(self.pdf, labels, **kwargs)
             self.pdf_fig.save()
             self.pdf_fig.cla()
-    
-    
+
+
     def plot_fr(self):
         """print self.fr"""
         if self.fr is None:
@@ -136,21 +137,21 @@ class FRData(DataSet):
             pass
         else:
             labels           = {}
-            # mind the $ and r's for latex formatted printing 
+            # mind the $ and r's for latex formatted printing
             labels['ylabel'] =( r'\frac{1}{\tau}ln\left(\frac{P(\langle\bar{'
                              +  r'{}'.format(self.symbol)
                              +  r'_{\tau}}\rangle)}{P(\langle\bar{'
-                             +  r'{}'.format(self.symbol) 
+                             +  r'{}'.format(self.symbol)
                              +  r'_{\tau}}\rangle)}\right)')
 
             # lacks universality, but based on use is ok
-            labels['xlabel'] =(r'\langle\bar{' 
+            labels['xlabel'] =(r'\langle\bar{'
                     + r'{}'.format(self.symbol)
                              + r'_{\tau}}\rangle / '
                              + r'{}'.format(self.unit))
             labels['title']  =(r'fluctuation relation for '
                              + r'${}$'.format(self.symbol))
-            
+
             labels['opath']  = 'output/'
             labels['oname']  = self.name + '_fr'
 
@@ -162,15 +163,32 @@ class FRData(DataSet):
             self.fr_fig.cla()
 
     def plot(self):
-        self.plot_pdf()
-        self.plot_fr()
+        """plots the contained data"""
+        labels = {}
+        # mind the $ and r's for latex formatted printing
+        labels['ylabel'] = r'{}'.format(self.symbol)
+        # lacks universality, but based on use is ok
+        labels['xlabel'] = r'{} / {}'.format(self.symbol, self.unit)
+        labels['title']  = (r'Plot of Data of '
+                            +r'${}$'.format(self.symbol))
+        labels['opath']  = 'output/'
+        labels['oname']  = self.name + '_data'
+        kwargs           = {'linestyle': 'none','label':'',
+                            'marker':'o', 'ms': 1.5, 'lw':'1.0',
+                            'color':'blue'}
+        self.dat_fig = pc.Plot(self.data, labels, **kwargs)
+        self.dat_fig.save()
+        self.dat_fig.cla()
+
+
+
 
 class GaussData( FRData ):
     """Class that includes Gaussian Analysis
         likely to be superflous.
         But it makes for pretty plots.
         """
-     
+
     def __init__(self, name, unit, data, dtime,
                  disc = None, tau_c = None, avg_step = 1):
         super(GaussData, self).__init__(name, symbol, unit, data, dtime, disc, tau_c, avg_step)
