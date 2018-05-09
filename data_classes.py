@@ -22,7 +22,6 @@ class DataSet(object):
         else:
             print 'invalid Parameter for discard of data points'
             self.disc   = None
-
     def plot_data(self):
         # mind the $ and r's for latex formatted printing
         labels['ylabel'] = r'${} / {}$'.format(symbol, unit)
@@ -59,6 +58,12 @@ class FRData(DataSet):
         pass
         # not yet active
         # self.disc, self.tau_c   = minimize_scalar (self.discard)
+
+    def filter(self, min, max):
+        """filters data for minimum and maximum values"""
+        mask = np.where((self.data > min) & (self.data < max))
+        self.data = self.data[mask]
+        print self.data
 
 
     def compute_decorrelation_time(self):
@@ -164,22 +169,6 @@ class FRData(DataSet):
 
     def plot(self):
         """plots the contained data"""
-        labels = {}
-        # mind the $ and r's for latex formatted printing
-        labels['ylabel'] = r'{}'.format(self.symbol)
-        # lacks universality, but based on use is ok
-        labels['xlabel'] = r'{} / {}'.format(self.symbol, self.unit)
-        labels['title']  = (r'Plot of Data of '
-                            +r'${}$'.format(self.symbol))
-        labels['opath']  = 'output/'
-        labels['oname']  = self.name + '_data'
-        kwargs           = {'linestyle': 'none','label':'',
-                            'marker':'o', 'ms': 1.5, 'lw':'1.0',
-                            'color':'blue'}
-        self.dat_fig = pc.Plot(self.data, labels, **kwargs)
-        self.dat_fig.save()
-        self.dat_fig.cla()
-
 
 
 

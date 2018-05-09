@@ -82,14 +82,16 @@ def analyse_and_plot(file_path, file_name, out_path):
 
     ddtsint = dc.FRData(name,r'\sigma', r'\lbrack \frac{J}{K \cdot s} \rbrack', data['t_fric'], dtime, disc)
     print ddtsint.data.shape
+    ddtsint.filter(-10,10)
     ddtsint.pdf = ddtsint.compute_pdf(None)
+    print ddtsint.pdf
     ddtsint.tau_c = 3
     ddtsint.fr = ddtsint.compute_fr(ddtsint.pdf)
+    print ddtsint.fr
     # ddtsint.compute_multiple(2)
     ddtsint.plot_pdf()
     ddtsint.plot_fr()
-    ddtsint.plot()
-    print type(ddtsint.data)
+    #ddtsint.plot()
 
     #----------------
   #  name        = 'ddt_s_hsf'

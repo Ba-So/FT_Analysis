@@ -107,7 +107,7 @@ def stepwise_mean(x, N, jump):
 def define_bins(data):
     """defines bins for estimation of PDF"""
     print('defining bins')
-    num_bins  = int(math.log(len(data),2))+1
+    num_bins  = int(math.log(len(data),2))+2
     bins      = np.zeros(((num_bins+1), 3))
     print data[3:10]
     if not (isinstance(data, np.ndarray) or isinstance(data, list)):
@@ -115,46 +115,42 @@ def define_bins(data):
         return bins
     else:
         # define bins such, that they are symmetric around zero
-        dat_max   = np.amax(data)
-        dat_min   = np.amin(data)
-        dat_step  = abs((dat_max-dat_min) / num_bins)
+        dat_max = np.amax(data)
+        dat_min = np.amin(data)
+        dat_max = max(abs(dat_max), abs(dat_min))
+        dat_step = abs((2 * dat_max) / (num_bins))
+       # dat_step = abs((dat_max-dat_min) / num_bins)
         print('dat_step is : {}').format(dat_step)
         if dat_min < 0:
-            if dat_max >= 0:
-                num_l     = int(abs(dat_min+dat_step) // dat_step)
-                if (dat_min+dat_step)%dat_step <0:
-                    num_l += 1
-                #in need of further correction
-                # lower bound of bin
-                bins[(num_l), 1] = -dat_step
-                # upper bound of bin
-                bins[(num_l), 2] = 0
-                # center of bin, for plotting
-                bins[(num_l), 0] = -dat_step/2
-            elif dat_max <=0:
-                num_l     = int(abs(dat_max-dat_min-dat_step) //dat_step)
-                # lower bound of bin
-                bins[(num_l), 1] = dat_max-dat_step
-                # upper bound of bin
-                bins[(num_l), 2] = dat_max
-                # center of bin, for plotting
-                bins[(num_l), 0] = dat_max-dat_step/2
-            for i in range((num_l-1), -1, -1):
-                for j in range(3):
-                    bins[i, j] = bins[i + 1, j] - dat_step
+            bins = np.arange(0, dat_max + dat_step, dat_step)
+            bins = np.append(-bins[::-1][:-1],bins)
+            middle = np.append(
+                np.array([
+                    bins[i] + (bins[i+1] - bins[i]) / 2.
+                    for i,j in enumerate(bins[:-1])
+                ]),
+                0 # dummy value at end to make bins and middle equally long
+            )
+            bins = np.array([
+                middle,
+                bins
+            ])
+            print dat_step/2.
+
         else:
             print "Data not a candidate for FT"
-            num_l     =  1
-            # lower bound of bin
-            bins[0, 1] = dat_min
-            # upper bound of bin
-            bins[0, 2] = dat_min + dat_step
-            # center of bin, for plotting
-            bins[0, 0] = dat_min + dat_step/2
-
-        for i in range(num_l, (num_bins+1)):
-            for j in range(3):
-                bins[i, j] = bins[(i - 1), j] + dat_step
+            bins = np.arange(dat_min, dat_max+dat_step, dat_step)
+            middle = np.append(
+                np.array([
+                    bins[i] + (bins[i+1] - bins[i]) / 2.
+                    for i,j in enumerate(bins[:-1])
+                ]),
+                0 #dummy value to make bins and middle equally long
+            )
+            bins = np.array([
+                middle,
+                bins
+            ])
         return bins
 
 def compute_pdf(data, avg, avg_step=0):
@@ -172,9 +168,17 @@ def compute_pdf(data, avg, avg_step=0):
         else:
             print 'invalid avg_step {}'.format(avg_step)
             return None
+    num_bins  = int(math.log(len(data),2))+2
+    norm_factor = num_bins / (2 * max(abs(points)))
+    # done to ensure a summed probability of 1.0 -> bin size of unity
+    points = np.multiply(points, norm_factor)
     bins = define_bins(points)
-    test        = np.histogram(points, bins[:, 1], density = True)[0]
-    out         = np.array([np.array(bins[1:,0]),np.array( test)])
+    print('bins: {}').format(bins)
+    test        = np.histogram(points, bins[1, :], density = True)
+    print('test: {}; {}; {}').format(test[0], np.sum(test[0]), np.shape(test[0]))
+    print('{}').format(np.shape(bins))
+    test = test[0]
+    out = np.array([np.divide(bins[0,:-1], norm_factor), np.divide(test, np.sum(test))])
     del test, avg, points, bins
     return out
 

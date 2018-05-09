@@ -31,20 +31,20 @@ class Plot(object):
         # for more than this one thing...
         if data is None:
             data = self.data
-        if len(np.shape(data)) > 1:
+        if len(np.shape(data)) == 3:
             # multiple 2D plots  3D structure
             plt.gca().set_color_cycle(None)
             marker      = iter.cycle(('o','v','^','<','>','s','8','p'))
             ax          = plt.gca()
-            for i,j in enumerate(data[0,]):
-                # multiple 1D plots 2D structure
-                if np.shape(data[i])[0] == 1:
+            for i,j in enumerate(data):
+                # multiple 1D plots 3D structure
+                if np.shape(data[i,])[0] == 1:
                     color    = next(ax._get_lines.prop_cycler)['color']
                     self.kwargs['marker'] = marker.next()
                     self.kwargs['color']  = color
                     self.fig = self.onedim_plot(data[i, 0])
                 # multiple 2D plots in 3D structure
-                elif np.shape(data[i])[0] == 2:
+                elif np.shape(data[i,])[0] == 2:
                     color    = next(ax._get_lines.prop_cycler)['color']
                     self.kwargs['marker'] = marker.next()
                     self.kwargs['color']  = color
@@ -54,11 +54,17 @@ class Plot(object):
                     pass
             # 4D data structures and above not implemented.
             self.fig    = plt.gca()
-        elif len(shape(data)) == 1:
-            color    = next(ax._get_lines.prop_cycler)['color']
-            self.kwargs['marker'] = marker.next()
-            self.kwargs['color']  = color
-            self.fig = self.onedim_plot(data[i][0])
+        # 2D Info in 2D array..., I didn't account for 1D arrays in 2D array.
+        elif len(np.shape(data)) == 2:
+            self.fig = self.twodim_plot(data[0], data[1])
+            self.kwargs['marker'] = 'o'
+            self.kwargs['color']  = 'red'
+            self.fig    = plt.gca()
+        # 1D info in 1D array...
+        elif len(np.shape(data)) == 1:
+            self.kwargs['marker'] = 'o'
+            self.kwargs['color']  = 'red'
+            self.fig = self.onedim_plot(data)
             self.fig    = plt.gca()
 
         else:
@@ -124,8 +130,8 @@ class Lin_Reg(Plot):
 
        if len(self.data) >= 1:
            for i in range(len(self.data)):
-               if self.data[i].ndim == 2:
-                   curve, fit_slope, fit_offs = dm.lin_reg(self.data[i])
+               if self.data.ndim == 2:
+                   curve, fit_slope, fit_offs = dm.lin_reg(self.data)
                    self.fit_curve.append(curve)
                    self.fit_slope.append(fit_slope)
                    self.fit_offs.append(fit_offs)
@@ -134,6 +140,7 @@ class Lin_Reg(Plot):
                    # I know this is dumb.
                else:
                    print 'data set has to many dimensions, not compatible'
+           self.fit_curve = np.array([j for i,j in enumerate(self.fit_curve)])
        else:
            print 'data empty'
 
